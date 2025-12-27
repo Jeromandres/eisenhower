@@ -1,10 +1,10 @@
 {
-	"id": "proletarian-wizard",
+	"id": "eisenhower",
 	"name": "Proletarian Wizard Task Manager",
-	"author": "Charles Feval",
+	"author": "Jérôme ANDRES",
 	"description": "Track your tasks across all the notes in your workspace. Organize your day. Plan your work",
 	"authorUrl": "https://fev.al",
-	"version": "1.9.0",
+	"version": "0.0.1",
 	"minAppVersion": "1.0.0",
 	"isDesktopOnly": false
 }
