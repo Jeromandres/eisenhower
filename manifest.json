@@ -1,10 +1,10 @@
 {
 	"id": "eisenhower",
-	"name": "Proletarian Wizard Task Manager",
+	"name": "Eisenhower Matrix",
 	"author": "Jérôme ANDRES",
-	"description": "Track your tasks across all the notes in your workspace. Organize your day. Plan your work",
+	"description": "True Eisenhower matrix with drag & drop that rewrites task tags (#urgent / #important)",
 	"authorUrl": "https://fev.al",
 	"version": "0.0.1",
-	"minAppVersion": "1.0.0",
+	"minAppVersion": "1.5.0",
 	"isDesktopOnly": false
 }
