@@ -160,7 +160,7 @@ render() {
 	  buckets[b].push(t);
 	}
 	
-	const renderList = (boxEl: HTMLElement, items: any[]) => {
+	const renderList = async (boxEl: HTMLElement, items: any[]) => {
 	  if (!items.length) {
 	    boxEl.createEl("div", { text: "—", cls: "pw-eisenhower-empty" });
 	    return;
@@ -211,7 +211,7 @@ render() {
 		
 		// 1) zone markdown
 		const mdHost = main.createSpan({ cls: "pw-eisenhower-md" });
-		await this.renderInlineMarkdown(mdHost, md, sourcePath || "");
+		this.renderInlineMarkdown(mdHost, md, sourcePath || "");
 		
 		// 2) crayon INLINE (un seul)
 		const editBtn = main.createEl("button", { cls: "pw-eisenhower-edit-inline", text: "✏️" });
