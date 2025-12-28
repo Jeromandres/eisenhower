@@ -212,21 +212,21 @@ render() {
 	
 	    // rendu preview
 	    this.renderInlineMarkdown(main, md, sourcePath || this.app.vault.getRoot().path);
+
+		const edit = main.createEl("button", { cls: "pw-eisenhower-edit-inline", text: "✏️" });
+		edit.type = "button";
+		edit.title = hasTasksModal ? "Éditer (Tasks modal)" : "Tasks modal indisponible";
+		edit.disabled = !hasTasksModal;
+		edit.onclick = async (ev) => {
+		  ev.preventDefault(); ev.stopPropagation();
+		  await this.editWithTasksModal(t);
+		};
 	
 	    // clic “ligne entière” -> ouvrir occurrence (note + ligne)
 	    row.onclick = async (ev) => {
 	      // laisser les clics sur liens/checkbox/boutons faire leur vie
 	      const el = ev.target as HTMLElement;
 	      if (el.closest("a, input, button")) return;
-	      await this.openTodoOccurrence(t);
-	    };
-	
-	    // icône occurrence explicite (comme dans ton dashboard)
-	    const occ = row.createEl("button", { cls: "pw-eisenhower-occ-btn", text: "🔎" });
-	    occ.type = "button";
-	    occ.title = "Ouvrir sur la tâche";
-	    occ.onclick = async (ev) => {
-	      ev.preventDefault(); ev.stopPropagation();
 	      await this.openTodoOccurrence(t);
 	    };
 	
