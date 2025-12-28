@@ -3,6 +3,8 @@ import { getTodoId } from "../domain/TodoItem";
 import { Consts } from "../domain/Consts";
 
 export class EisenhowerView extends ItemView {
+  private debugEis = true;
+	
   static viewType = "eisenhower-view";
 
   private deps: { logger?: any; todoIndex?: any; settings?: any };
@@ -120,6 +122,38 @@ export class EisenhowerView extends ItemView {
 	}
 	
 	private async toggleTodoStatus(t: any) {
+	  const file = this.getTodoFile(t);
+	  const line = this.getTodoLine(t);
+	
+	  if (this.debugEis) {
+	    console.log("[EIS] toggleTodoStatus", {
+	      file: file?.path,
+	      line,
+	      text: t?.text,
+	    });
+	  }
+	
+	  if (!file || line == null) {
+	    new Notice("EIS: file/line manquant");
+	    return;
+	  }
+	
+	  const original = await this.readLineFromFile(file, line);
+	  if (this.debugEis) {
+	    console.log("[EIS] original line", original);
+	  }
+	
+	  if (!original) {
+	    new Notice("EIS: ligne introuvable dans le fichier");
+	    return;
+	  }
+	
+	  const state = this.getCheckboxState(original);
+	  if (this.debugEis) {
+	    console.log("[EIS] checkbox state", state);
+	  }
+
+  // laisse TON code actuel après ça
 	  const file = this.getTodoFile(t);
 	  const line = this.getTodoLine(t);
 	  if (!file || line == null) return;
