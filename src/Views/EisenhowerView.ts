@@ -129,6 +129,27 @@ export class EisenhowerView extends ItemView {
 	  );
 	}
 
+	private wireInternalLinks(root: HTMLElement, sourcePath: string) {
+	  root.querySelectorAll("a.internal-link").forEach((a) => {
+	    // évite de binder 2 fois
+	    if ((a as any).dataset?.pwBound === "1") return;
+	    (a as any).dataset.pwBound = "1";
+	
+	    const href =
+	      a.getAttribute("data-href") ||
+	      a.getAttribute("href") ||
+	      "";
+	
+	    if (!href) return;
+	
+	    a.addEventListener("click", (ev) => {
+	      ev.preventDefault();
+	      ev.stopPropagation();
+	      this.app.workspace.openLinkText(href, sourcePath || "", false);
+	    });
+	  });
+	}
+	
 	async render() {
 	  const { containerEl } = this;
 	  containerEl.empty();
@@ -228,7 +249,8 @@ export class EisenhowerView extends ItemView {
 			  : labelRaw;
 			
 			await this.renderInlineMarkdown(mdHost, md, sourcePath || "");
-	
+			this.wireInternalLinks(mdHost, sourcePath || "");	
+			  
 			// ✅ AJOUTER
 			const p = mdHost.querySelector("p") ?? mdHost;
 			
