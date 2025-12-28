@@ -1,4 +1,5 @@
 import { EisenhowerView } from "./Views/EisenhowerView";
+import { OpenEisenhowerViewCommand } from "./Commands/OpenEisenhowerViewCommand";
 import { ConsoleLogger, LogLevel } from "src/infrastructure/ConsoleLogger";
 import { FolderTodoParser } from "./domain/FolderTodoParser";
 import { FileTodoParser } from "./domain/FileTodoParser";
@@ -115,6 +116,7 @@ export default class ProletarianWizard extends Plugin {
 		this.addCommand(openPlanningSplitVCommand);
 		this.addCommand(openPlanningSplitHCommand);
 		this.addCommand(openReportCommand);
+		this.addCommand(new OpenEisenhowerViewCommand(this.app));
 		this.addSettingTab(new ProletarianWizardSettingsTab(this.app, this));
 
 		this.addRibbonIcon("calendar-glyph", "Open planning", (_) => {
