@@ -72,8 +72,19 @@
 /* neutralise l'ancien bullet/dot si encore créé */
 .pw-eisenhower-dot { display: none !important; }
 
+.pw-eisenhower-root{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 /* liste plus dense */
-.pw-eisenhower-list { gap: 4px !important; margin-top: 8px !important; }
+.pw-eisenhower-list{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto; /* le scroll est ici */
+}
 
 /* ligne compacte */
 .pw-eisenhower-row{
@@ -116,16 +127,11 @@
   line-height: 1 !important;
 }
 
-/* optionnel: cards un peu moins "spacieuses" */
-.pw-eisenhower-card{ padding: 10px !important; }
-
 /* Eisenhower — hard override (BOTTOM) */
 .pw-eisenhower-grid{
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 12px !important;
+  flex: 1 1 auto;
+  min-height: 0;
 }
-
 .pw-eisenhower-inbox{
   grid-column: 1 / -1 !important;
 }
@@ -136,7 +142,10 @@
   padding: 10px !important;
   background: var(--background-secondary) !important;
 
-  overflow: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  overflow: hidden !important; /* important */
 }
 
 /* crayon collé au texte (pas colonne dédiée) */
