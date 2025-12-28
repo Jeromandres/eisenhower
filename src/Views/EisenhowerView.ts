@@ -154,13 +154,6 @@ export class EisenhowerView extends ItemView {
 	  }
 
   // laisse TON code actuel après ça
-	  const file = this.getTodoFile(t);
-	  const line = this.getTodoLine(t);
-	  if (!file || line == null) return;
-	
-	  const original = await this.readLineFromFile(file, line);
-	  if (!original) return;
-	
 	  const next = this.toggleCheckboxLine(original);
 	  if (next === original) {
 	    new Notice("Impossible de basculer: ligne non reconnue comme tâche markdown.");
