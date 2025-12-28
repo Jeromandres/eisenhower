@@ -139,3 +139,41 @@
   max-height: calc(100vh - 220px) !important;
   overflow: auto !important;
 }
+
+/* Ligne compacte + tout sur une seule ligne */
+.pw-eisenhower-row{
+  align-items: center;
+}
+
+/* zone centrale: texte + crayon inline */
+.pw-eisenhower-main{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* le bloc markdown doit pouvoir prendre toute la largeur */
+.pw-eisenhower-md{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* évite que les <p> ajoutent des hauteurs */
+.pw-eisenhower-md p{
+  margin: 0;
+}
+
+/* checkbox alignée */
+.task-list-item-checkbox{
+  margin: 0;
+  align-self: center;
+}
+
+/* crayon collé au texte (pas colonne dédiée) */
+.pw-eisenhower-edit-inline{
+  margin-left: 6px;
+  height: 24px;
+  line-height: 1;
+  padding: 2px 8px;
+}
