@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { MarkdownView, TFile, Notice } from "obsidian";
+import { MarkdownView, TFile, Notice, MarkdownRenderer, Component } from "obsidian";
 
 export class EisenhowerView extends ItemView {
   static viewType = "eisenhower-view";
@@ -14,7 +14,14 @@ export class EisenhowerView extends ItemView {
     this.deps = deps;
   }
 
-  getViewType(): string {
+  private mdComponent = new Component();
+
+  private async renderInlineMarkdown(target: HTMLElement, md: string, sourcePath: string) {
+    target.empty();
+    await MarkdownRenderer.renderMarkdown(md, target, sourcePath, this.mdComponent);
+  }
+	
+	getViewType(): string {
     return EisenhowerView.viewType;
   }
 
@@ -163,76 +170,77 @@ render() {
 	  const hasTasksModal = !!this.getTasksApi()?.editTaskLineModal;
 	
 	  for (const t of items) {
+	    const file = this.getTodoFile(t);
+	    const lineNo = this.getTodoLine(t);
+	    const sourcePath = file?.path ?? "";
+	    const fileLabel = this.sourceFileLabel(t); // ex: "2025-12-28"
+	
 	    const textRaw = String(t?.text ?? "");
 	    const label = this.stripEisenhowerTags(textRaw) || "(sans texte)";
-	    const fileLabel = this.sourceFileLabel(t);
 	
 	    const row = list.createDiv({ cls: "pw-eisenhower-row" });
 	
-	    // Left: status button
-	    const file = this.getTodoFile(t);
-	    const lineNo = this.getTodoLine(t);
+	    // Checkbox (même look que Markdown Preview)
+	    const cb = row.createEl("input", { type: "checkbox", cls: "task-list-item-checkbox" });
+	    cb.tabIndex = -1;
 	
-	    const statusBtn = row.createEl("button", { cls: "pw-eisenhower-status", text: "…" });
-	    statusBtn.title = "Basculer fait / à faire";
-	    statusBtn.type = "button";
-	
-	    // Initialise l’icône de statut (best-effort)
 	    (async () => {
-	      if (!file || lineNo == null) { statusBtn.textContent = "•"; return; }
+	      if (!file || lineNo == null) return;
 	      const ln = await this.readLineFromFile(file, lineNo);
-	      if (!ln) { statusBtn.textContent = "•"; return; }
+	      if (!ln) return;
 	      const st = this.getCheckboxState(ln);
-	      statusBtn.textContent = st === "DONE" ? "✓" : (st === "TODO" ? "○" : "•");
-	      statusBtn.dataset.state = st;
+	      cb.checked = st === "DONE";
 	    })();
 	
-	    statusBtn.onclick = async (ev) => {
-	      ev.preventDefault(); ev.stopPropagation();
+	    cb.onclick = async (ev) => {
+	      ev.preventDefault();
+	      ev.stopPropagation();
 	      await this.toggleTodoStatus(t);
-	      // rafraîchir l’icône
 	      if (file && lineNo != null) {
 	        const ln = await this.readLineFromFile(file, lineNo);
 	        const st = ln ? this.getCheckboxState(ln) : "NONE";
-	        statusBtn.textContent = st === "DONE" ? "✓" : (st === "TODO" ? "○" : "•");
-	        statusBtn.dataset.state = st;
+	        cb.checked = st === "DONE";
 	      }
 	    };
 	
-	    // Middle: main clickable
+	    // Contenu rendu comme en Preview (wikilinks, @, etc.)
 	    const main = row.createDiv({ cls: "pw-eisenhower-main" });
 	
-	    const title = main.createEl("a", { cls: "pw-eisenhower-title", href: "#", text: label });
-	    title.onclick = async (ev) => {
-	      ev.preventDefault(); ev.stopPropagation();
+	    const md = sourcePath
+	      ? `[[${sourcePath.replace(/\.md$/i, "")}|${fileLabel}]] — ${label}`
+	      : label;
+	
+	    // rendu preview
+	    this.renderInlineMarkdown(main, md, sourcePath || this.app.vault.getRoot().path);
+	
+	    // clic “ligne entière” -> ouvrir occurrence (note + ligne)
+	    row.onclick = async (ev) => {
+	      // laisser les clics sur liens/checkbox/boutons faire leur vie
+	      const el = ev.target as HTMLElement;
+	      if (el.closest("a, input, button")) return;
 	      await this.openTodoOccurrence(t);
 	    };
 	
-	    // Subline: source + explicit occurrence link
-	    const meta = main.createDiv({ cls: "pw-eisenhower-meta" });
-	    if (fileLabel) meta.createSpan({ text: fileLabel });
-	
-	    const occ = meta.createEl("a", { cls: "pw-eisenhower-occ", href: "#", text: " 🔎" });
+	    // icône occurrence explicite (comme dans ton dashboard)
+	    const occ = row.createEl("button", { cls: "pw-eisenhower-occ-btn", text: "🔎" });
+	    occ.type = "button";
 	    occ.title = "Ouvrir sur la tâche";
 	    occ.onclick = async (ev) => {
 	      ev.preventDefault(); ev.stopPropagation();
 	      await this.openTodoOccurrence(t);
 	    };
 	
-	    // Right: Tasks modal edit
-	    const right = row.createDiv({ cls: "pw-eisenhower-right" });
-	    const edit = right.createEl("button", { cls: "pw-eisenhower-edit", text: "✏️" });
+	    // icône Tasks modal (édition)
+	    const edit = row.createEl("button", { cls: "pw-eisenhower-edit", text: "✏️" });
 	    edit.type = "button";
-	    edit.title = hasTasksModal ? "Éditer (modal Tasks)" : "Tasks modal indisponible";
+	    edit.title = hasTasksModal ? "Éditer (Tasks modal)" : "Tasks modal indisponible";
 	    edit.disabled = !hasTasksModal;
-	
 	    edit.onclick = async (ev) => {
 	      ev.preventDefault(); ev.stopPropagation();
 	      await this.editWithTasksModal(t);
 	    };
 	  }
-	};
-	
+	};	
 	// Clear the small “rule” text and replace with lists
 	q1.empty(); q1.createEl("h3", { text: "Q1 — Urgent & Important" }); renderList(q1, buckets.Q1);
 	q2.empty(); q2.createEl("h3", { text: "Q2 — Important (not urgent)" }); renderList(q2, buckets.Q2);
@@ -314,7 +322,8 @@ render() {
   }
 
   async onClose() {
-    this.containerEl.empty();
+      this.mdComponent?.unload();
+	  this.containerEl.empty();
   }
 	
 }
