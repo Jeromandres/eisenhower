@@ -65,34 +65,33 @@ render() {
 	
 	const renderList = (boxEl: HTMLElement, items: any[]) => {
 	  if (!items.length) {
-	    const row = list.createDiv({ cls: "pw-eisenhower-row" });
-
-		row.createDiv({ cls: "pw-eisenhower-dot" });
-		
-		const main = row.createDiv({ cls: "pw-eisenhower-main" });
-		
-		const a = main.createEl("a", { text: label, cls: "pw-eisenhower-title", href: "#" });
-		a.onclick = async (ev) => {
-		  ev.preventDefault();
-		  ev.stopPropagation();
-		  await this.openTodo(t);
-		};
-	    return;
+		boxEl.createEl("div", { text: "—", cls: "pw-eisenhower-empty" });
+		return;
 	  }
 	
 	  const list = boxEl.createDiv({ cls: "pw-eisenhower-list" });
 	
 	  for (const t of items) {
-	    const textRaw = String(t?.text ?? t?.line ?? "");
-	    const label = this.stripEisenhowerTags(textRaw) || "(sans texte)";
+		const textRaw = String(t?.text ?? t?.line ?? "");
+		const label = this.stripEisenhowerTags(textRaw) || "(sans texte)";
 	
-	    const row = list.createDiv({ cls: "pw-eisenhower-row" });
+		const row = list.createDiv({ cls: "pw-eisenhower-row" });
 	
-	    // petit “bullet” visuel (sans checkbox pour l’instant)
-	    row.createDiv({ cls: "pw-eisenhower-dot" });
+		row.createDiv({ cls: "pw-eisenhower-dot" });
 	
-	    const main = row.createDiv({ cls: "pw-eisenhower-main" });
-	    main.createDiv({ text: label, cls: "pw-eisenhower-title" });
+		const main = row.createDiv({ cls: "pw-eisenhower-main" });
+	
+		const a = main.createEl("a", {
+		  text: label,
+		  cls: "pw-eisenhower-title",
+		  href: "#",
+		});
+	
+		a.onclick = async (ev) => {
+		  ev.preventDefault();
+		  ev.stopPropagation();
+		  await this.openTodo(t);
+		};
 	  }
 	};
 	
