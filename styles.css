@@ -572,3 +572,23 @@
   cursor: pointer;
   padding: 2px 8px;
 }
+
+.pw-eisenhower-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.pw-eisenhower-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pw-eisenhower-occ-btn,
+.pw-eisenhower-edit {
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  cursor: pointer;
+  padding: 2px 8px;
+}
