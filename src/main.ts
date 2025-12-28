@@ -1,3 +1,4 @@
+import { EisenhowerView, EISENHOWER_VIEW_TYPE } from "./Views/EisenhowerView";
 import { ConsoleLogger, LogLevel } from "src/infrastructure/ConsoleLogger";
 import { FolderTodoParser } from "./domain/FolderTodoParser";
 import { FileTodoParser } from "./domain/FileTodoParser";
@@ -176,6 +177,20 @@ export default class ProletarianWizard extends Plugin {
 			view.render();
 			return view;
 		});
+
+		this.registerView(EISENHOWER_VIEW_TYPE, (leaf) => {
+	const view = new EisenhowerView(
+		leaf,
+		{
+			logger: this.logger,
+			todoIndex: this.todoIndex,
+			settings: this.settings,
+			app: this.app,
+		}
+	);
+	view.render();
+	return view;
+});
 	}
 
 	private registerEvents() {
