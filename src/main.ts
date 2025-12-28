@@ -1,4 +1,4 @@
-import { EisenhowerView, EISENHOWER_VIEW_TYPE } from "./Views/EisenhowerView";
+import { EisenhowerView } from "./Views/EisenhowerView";
 import { ConsoleLogger, LogLevel } from "src/infrastructure/ConsoleLogger";
 import { FolderTodoParser } from "./domain/FolderTodoParser";
 import { FileTodoParser } from "./domain/FileTodoParser";
