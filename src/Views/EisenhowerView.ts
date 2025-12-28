@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { MarkdownView, TFile, Note } from "obsidian";
+import { MarkdownView, TFile, Notice } from "obsidian";
 
 export class EisenhowerView extends ItemView {
   static viewType = "eisenhower-view";
@@ -16,7 +16,7 @@ export class EisenhowerView extends ItemView {
 
   getViewType(): string {
     return EisenhowerView.viewType;
-  }
+  }https://github.com/Jeromandres/eisenhower/blob/master/src/Views/EisenhowerView.ts
 
   getDisplayText(): string {
     return "Eisenhower Matrix";
