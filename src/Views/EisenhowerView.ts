@@ -96,15 +96,18 @@ export class EisenhowerView extends ItemView {
 	}
 	
 	private getCheckboxState(line: string): "DONE" | "TODO" | "NONE" {
-	  const m = line.match(/^\s*[-*]\s+\[([ xX])\]\s+/);
+	  // accepte - [ ] , - [x] , - [>] , - [/] , - [!] , - [?] ...
+	  const m = line.match(/^\s*[-*+]\s+\[([^\]])\]\s+/);
 	  if (!m) return "NONE";
 	  return m[1].toLowerCase() === "x" ? "DONE" : "TODO";
 	}
 	
 	private toggleCheckboxLine(line: string): string {
-	  const m = line.match(/^(\s*[-*]\s+\[)([ xX])(\]\s+)(.*)$/);
-	  if (!m) return line; // fallback: on ne force pas un format inconnu
-	  const cur = m[2].toLowerCase() === "x" ? "x" : " ";
+	  // bascule binaire : tout ce qui n'est pas x -> x ; x -> espace
+	  const m = line.match(/^(\s*[-*+]\s+\[)([^\]])(\]\s+)(.*)$/);
+	  if (!m) return line;
+	
+	  const cur = m[2].toLowerCase();
 	  const next = cur === "x" ? " " : "x";
 	  return `${m[1]}${next}${m[3]}${m[4]}`;
 	}
