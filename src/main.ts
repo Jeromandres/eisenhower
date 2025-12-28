@@ -187,7 +187,6 @@ export default class ProletarianWizard extends Plugin {
 					logger: this.logger,
 					todoIndex: this.todoIndex,
 					settings: this.settings,
-					app: this.app,
 				}
 			);
 			
