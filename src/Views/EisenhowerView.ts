@@ -182,14 +182,23 @@ export class EisenhowerView extends ItemView {
 		// Collect tasks from index (best-effort, without assuming exact API)
 		const allTasks: any[] = this.deps?.todoIndex?.todos ?? [];
 		
-		const buckets: Record<string, any[]> = { Q1: [], Q2: [], Q3: [], Q4: [], INBOX: [] };
-		
-		for (const t of allTasks) {
-		  const text = String(t?.text ?? t?.line ?? "");
-		  if (!text) continue;
-		  const b = this.bucketForTask(text);
-		  buckets[b].push(t);
-		}
+	const buckets: Record<"Q1"|"Q2"|"Q3"|"Q4"|"INBOX", any[]> = { Q1: [], Q2: [], Q3: [], Q4: [], INBOX: [] };
+	
+	for (const t of allTasks) {
+	  const file = this.getTodoFile(t);
+	  const lineNo = this.getTodoLine(t);
+	
+	  const rawLine =
+		file && lineNo != null
+		  ? await this.readLineFromFile(file, lineNo)
+		  : null;
+	
+	  const textForTags = (rawLine ?? String(t?.text ?? "")).trim();
+	  if (!textForTags) continue;
+	
+	  const b = this.bucketForTask(textForTags);
+	  buckets[b].push(t);
+	}
 		
 		  const renderList = async (boxEl: HTMLElement, items: any[]) => {
 		  if (!items.length) {
