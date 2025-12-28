@@ -36426,6 +36426,55 @@ __export(main_exports, {
 });
 module.exports = __toCommonJS(main_exports);
 
+// src/Views/EisenhowerView.ts
+var import_obsidian = require("obsidian");
+var _EisenhowerView = class _EisenhowerView extends import_obsidian.ItemView {
+  constructor(leaf, deps = {}) {
+    super(leaf);
+    this.deps = deps;
+  }
+  getViewType() {
+    return _EisenhowerView.viewType;
+  }
+  getDisplayText() {
+    return "Eisenhower Matrix";
+  }
+  render() {
+    var _a, _b;
+    const { containerEl } = this;
+    containerEl.empty();
+    containerEl.createEl("h2", { text: "Eisenhower Matrix" });
+    containerEl.createEl("p", { text: "View loaded." });
+    (_b = (_a = this.deps.logger) == null ? void 0 : _a.info) == null ? void 0 : _b.call(_a, "Eisenhower view rendered");
+  }
+  onOpen() {
+    return __async(this, null, function* () {
+      this.render();
+    });
+  }
+  onClose() {
+    return __async(this, null, function* () {
+      this.containerEl.empty();
+    });
+  }
+};
+_EisenhowerView.viewType = "eisenhower-view";
+var EisenhowerView = _EisenhowerView;
+
+// src/Commands/OpenEisenhowerViewCommand.ts
+var OpenEisenhowerViewCommand = class {
+  constructor(app) {
+    this.app = app;
+    this.id = "open-eisenhower-view";
+    this.name = "Open Eisenhower View";
+    this.callback = () => __async(this, null, function* () {
+      const leaf = this.app.workspace.getLeaf("tab");
+      yield leaf.setViewState({ type: EisenhowerView.viewType, active: true });
+      this.app.workspace.revealLeaf(leaf);
+    });
+  }
+};
+
 // src/infrastructure/ConsoleLogger.ts
 var ConsoleLogger = class {
   constructor(logLevel) {
@@ -42587,7 +42636,7 @@ var ObsidianFile = class {
 };
 
 // src/main.ts
-var import_obsidian12 = require("obsidian");
+var import_obsidian13 = require("obsidian");
 
 // src/events/PwEvent.ts
 var PwEvent = class {
@@ -42901,11 +42950,11 @@ var ToggleOngoingTodoCommand = class {
 };
 
 // src/Views/ProletarianWizardSettingsTab.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 
 // src/Views/FolderSelectionModal.ts
-var import_obsidian = require("obsidian");
-var FolderSelectionModal = class extends import_obsidian.Modal {
+var import_obsidian2 = require("obsidian");
+var FolderSelectionModal = class extends import_obsidian2.Modal {
   constructor(app, ignoredFolders, onSelect) {
     super(app);
     this.ignoredFolders = ignoredFolders;
@@ -42988,7 +43037,7 @@ var FolderSelectionModal = class extends import_obsidian.Modal {
 };
 
 // src/Views/ProletarianWizardSettingsTab.ts
-var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingTab {
+var ProletarianWizardSettingsTab = class extends import_obsidian3.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
@@ -43044,7 +43093,7 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
       item.addClass("pw-ignored-folder-item");
       const folderText = item.createEl("span", { text: folder || "/" });
       folderText.addClass("pw-ignored-folder-name");
-      const removeButton = new import_obsidian2.ButtonComponent(item);
+      const removeButton = new import_obsidian3.ButtonComponent(item);
       removeButton.setIcon("trash").setTooltip("Remove").onClick(() => __async(this, null, function* () {
         this.plugin.settings.ignoredFolders.remove(folder);
         yield this.plugin.saveSettings();
@@ -43055,8 +43104,8 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian2.Setting(containerEl).setName("Planning").setHeading();
-    new import_obsidian2.Setting(containerEl).setName("Daily WIP limit").setDesc("Default daily limit for work in process").addText(
+    new import_obsidian3.Setting(containerEl).setName("Planning").setHeading();
+    new import_obsidian3.Setting(containerEl).setName("Daily WIP limit").setDesc("Default daily limit for work in process").addText(
       (txt) => txt.setValue(
         this.plugin.settings.defaultDailyWipLimit.toString()
       ).onChange((txtValue) => __async(this, null, function* () {
@@ -43067,10 +43116,10 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
           this.plugin.settings.defaultDailyWipLimit = value;
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Ignore").setHeading();
+    new import_obsidian3.Setting(containerEl).setName("Ignore").setHeading();
     const ignoredFoldersSection = containerEl.createEl("div");
     ignoredFoldersSection.addClass("pw-ignored-folders-section");
-    new import_obsidian2.Setting(ignoredFoldersSection).setName("Ignored folders").setDesc("Folders from which you don't want todos").addButton((button) => {
+    new import_obsidian3.Setting(ignoredFoldersSection).setName("Ignored folders").setDesc("Folders from which you don't want todos").addButton((button) => {
       button.setButtonText("Add folder").setCta().onClick(() => {
         this.showFolderSelectionModal();
       });
@@ -43087,7 +43136,7 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
       "Saturday",
       "Sunday"
     ];
-    new import_obsidian2.Setting(containerEl).setName("First weekday").setDesc("Specify the first weekday weekend filtering").addDropdown((dropDown) => {
+    new import_obsidian3.Setting(containerEl).setName("First weekday").setDesc("Specify the first weekday weekend filtering").addDropdown((dropDown) => {
       var _a;
       days.forEach(
         (display, index) => dropDown.addOption((index + 1).toString(), display)
@@ -43100,20 +43149,20 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
         yield this.plugin.saveSettings();
       }));
     });
-    new import_obsidian2.Setting(containerEl).setName("Show weekend in planning").setDesc("Should weekend days be displayed in the planning view").addToggle(
+    new import_obsidian3.Setting(containerEl).setName("Show weekend in planning").setDesc("Should weekend days be displayed in the planning view").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.showWeekEnds).onChange((value) => __async(this, null, function* () {
         this.plugin.settings.showWeekEnds = value;
         yield this.plugin.saveSettings();
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Ignore archived todo").setDesc("Ignore todos in file under archive folder").addToggle(
+    new import_obsidian3.Setting(containerEl).setName("Ignore archived todo").setDesc("Ignore todos in file under archive folder").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.ignoreArchivedTodos).onChange((value) => __async(this, null, function* () {
         this.plugin.settings.ignoreArchivedTodos = value;
         yield this.plugin.saveSettings();
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Attributes").setHeading();
-    new import_obsidian2.Setting(containerEl).setName("Use Dataview Syntax").setDesc(
+    new import_obsidian3.Setting(containerEl).setName("Attributes").setHeading();
+    new import_obsidian3.Setting(containerEl).setName("Use Dataview Syntax").setDesc(
       "Default (off) is @due(2025-01-01). When turned on, syntax becomes [due:: 2025-01-01]"
     ).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.useDataviewSyntax).onChange((value) => __async(this, null, function* () {
@@ -43121,7 +43170,7 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
         yield this.plugin.saveSettings();
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Due date attribute").setDesc("Attribute to set a todo due date").addText(
+    new import_obsidian3.Setting(containerEl).setName("Due date attribute").setDesc("Attribute to set a todo due date").addText(
       (toggle) => toggle.setValue(this.plugin.settings.dueDateAttribute).onChange((value) => __async(this, null, function* () {
         if (!value || value.contains(" ")) {
           return;
@@ -43131,7 +43180,7 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
         }
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Completed date attribute").setDesc("Attribute to set a todo completed date").addText(
+    new import_obsidian3.Setting(containerEl).setName("Completed date attribute").setDesc("Attribute to set a todo completed date").addText(
       (toggle) => toggle.setValue(this.plugin.settings.completedDateAttribute).onChange((value) => __async(this, null, function* () {
         if (!value || value.contains(" ")) {
           return;
@@ -43141,7 +43190,7 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
         }
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Selected attribute").setDesc("Attribute to selected a todo").addText(
+    new import_obsidian3.Setting(containerEl).setName("Selected attribute").setDesc("Attribute to selected a todo").addText(
       (toggle) => toggle.setValue(this.plugin.settings.selectedAttribute).onChange((value) => __async(this, null, function* () {
         if (!value || value.contains(" ")) {
           return;
@@ -43151,14 +43200,14 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
         }
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Track start time").setDesc("Track when todo was moved to 'In progress'").addToggle(
+    new import_obsidian3.Setting(containerEl).setName("Track start time").setDesc("Track when todo was moved to 'In progress'").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.trackStartTime).onChange((value) => __async(this, null, function* () {
         this.plugin.settings.trackStartTime = value;
         yield this.plugin.saveSettings();
         startedAttribute.setDisabled(!value);
       }))
     );
-    const startedAttribute = new import_obsidian2.Setting(containerEl).setName("Started attribute").setDesc("Attribute to track the started date of a todo").addText(
+    const startedAttribute = new import_obsidian3.Setting(containerEl).setName("Started attribute").setDesc("Attribute to track the started date of a todo").addText(
       (toggle) => toggle.setValue(this.plugin.settings.startedAttribute).onChange((value) => __async(this, null, function* () {
         if (!value || value.contains(" ")) {
           return;
@@ -43168,20 +43217,20 @@ var ProletarianWizardSettingsTab = class extends import_obsidian2.PluginSettingT
         }
       }))
     ).setDisabled(!this.plugin.settings.trackStartTime);
-    new import_obsidian2.Setting(containerEl).setName("Progress Tracking").setHeading();
-    new import_obsidian2.Setting(containerEl).setName("Default start hour").setDesc("Default start hour for daily progress tracking").addText(
+    new import_obsidian3.Setting(containerEl).setName("Progress Tracking").setHeading();
+    new import_obsidian3.Setting(containerEl).setName("Default start hour").setDesc("Default start hour for daily progress tracking").addText(
       (text2) => text2.setPlaceholder("08:00").setValue(this.plugin.settings.defaultStartHour || "08:00").onChange((value) => __async(this, null, function* () {
         this.plugin.settings.defaultStartHour = value;
         yield this.plugin.saveSettings();
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Default end hour").setDesc("Default end hour for daily progress tracking").addText(
+    new import_obsidian3.Setting(containerEl).setName("Default end hour").setDesc("Default end hour for daily progress tracking").addText(
       (text2) => text2.setPlaceholder("17:00").setValue(this.plugin.settings.defaultEndHour || "17:00").onChange((value) => __async(this, null, function* () {
         this.plugin.settings.defaultEndHour = value;
         yield this.plugin.saveSettings();
       }))
     );
-    new import_obsidian2.Setting(containerEl).setName("Display today's progress bar").setDesc(
+    new import_obsidian3.Setting(containerEl).setName("Display today's progress bar").setDesc(
       "Show a progress bar representing today's progress in working hours"
     ).addToggle(
       (toggle) => toggle.setValue(
@@ -43232,7 +43281,7 @@ var CompleteLineCommand = class {
 };
 
 // src/Views/PlanningView.ts
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 
 // src/ui/PlanningComponent.tsx
 var React16 = __toESM(require_react());
@@ -46263,7 +46312,7 @@ var React11 = __toESM(require_react());
 
 // src/ui/TodoItemComponent.tsx
 var React10 = __toESM(require_react());
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/ui/TodoSubtasksContainer.tsx
 var React8 = __toESM(require_react());
@@ -46299,7 +46348,7 @@ function TodoSubtasksContainer({ subtasks, deps, playSound, dontCrossCompleted, 
 
 // src/ui/TodoStatusComponent.tsx
 var React9 = __toESM(require_react());
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 function statusToIcon(status) {
   switch (status) {
     case 4 /* Complete */:
@@ -46333,7 +46382,7 @@ function TodoStatusComponent({ todo, deps, settings, playSound }) {
     if (evt.defaultPrevented) {
       return;
     }
-    const menu = new import_obsidian3.Menu();
+    const menu = new import_obsidian4.Menu();
     addChangeStatusMenuItem(menu, 1 /* Todo */, "\u25FB\uFE0F Mark as todo");
     addChangeStatusMenuItem(menu, 4 /* Complete */, "\u2714\uFE0F Mark as complete");
     addChangeStatusMenuItem(menu, 2 /* InProgress */, "\u23E9 Mark as in progress");
@@ -46477,7 +46526,7 @@ function TodoItemComponent({ todo, deps, playSound, dontCrossCompleted, displayP
         leaf = app.workspace.getLeaf(false);
       }
       yield leaf.openFile(file);
-      let view = app.workspace.getActiveViewOfType(import_obsidian4.MarkdownView);
+      let view = app.workspace.getActiveViewOfType(import_obsidian5.MarkdownView);
       const lineContent = yield view.editor.getLine(line);
       view.editor.setSelection({ ch: 0, line }, { ch: lineContent.length, line });
     });
@@ -46508,7 +46557,7 @@ function TodoItemComponent({ todo, deps, playSound, dontCrossCompleted, displayP
     if (evt.defaultPrevented) {
       return;
     }
-    const menu = new import_obsidian4.Menu();
+    const menu = new import_obsidian5.Menu();
     menu.setNoIcon();
     addChangePriorityMenuItem(menu, "critical", "double-up-arrow-glyph", "\u26A1");
     addChangePriorityMenuItem(menu, "high", "up-chevron-glyph", "\u2757");
@@ -46907,7 +46956,7 @@ function TodayHoursComponent({
 }
 
 // src/domain/DailyNoteService.ts
-var import_obsidian5 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 var DailyNoteService = class {
   constructor(app) {
     this.app = app;
@@ -46963,7 +47012,7 @@ var DailyNoteService = class {
     return __async(this, null, function* () {
       const path = this.getDailyNotePath(date);
       const file = this.app.vault.getAbstractFileByPath(path);
-      return file instanceof import_obsidian5.TFile ? file : null;
+      return file instanceof import_obsidian6.TFile ? file : null;
     });
   }
   /**
@@ -47002,7 +47051,7 @@ var DailyNoteService = class {
       const templatePath = this.getDailyNoteTemplate();
       if (templatePath) {
         const templateFile = this.app.vault.getAbstractFileByPath(templatePath);
-        if (templateFile instanceof import_obsidian5.TFile) {
+        if (templateFile instanceof import_obsidian6.TFile) {
           try {
             let templateContent = yield this.app.vault.read(
               templateFile
@@ -47036,8 +47085,8 @@ var DailyNoteService = class {
 };
 
 // src/Views/DateSelectionModal.ts
-var import_obsidian6 = require("obsidian");
-var DateSelectionModal = class extends import_obsidian6.Modal {
+var import_obsidian7 = require("obsidian");
+var DateSelectionModal = class extends import_obsidian7.Modal {
   constructor(app, startDate, endDate, onDateSelected) {
     super(app);
     this.startDate = startDate;
@@ -47075,7 +47124,7 @@ var DateSelectionModal = class extends import_obsidian6.Modal {
         this.selectedDate = date;
       });
     });
-    new import_obsidian6.Setting(contentEl).addButton(
+    new import_obsidian7.Setting(contentEl).addButton(
       (button) => button.setButtonText("Create Daily Note").setCta().onClick(() => {
         this.onDateSelected(this.selectedDate);
         this.close();
@@ -47429,7 +47478,7 @@ function MountPlanningComponent(onElement, props) {
 }
 
 // src/Views/PlanningView.ts
-var _PlanningView = class _PlanningView extends import_obsidian7.ItemView {
+var _PlanningView = class _PlanningView extends import_obsidian8.ItemView {
   constructor(deps, settings, leaf) {
     super(leaf);
     this.deps = deps;
@@ -47492,7 +47541,7 @@ var OpenPlanningCommand = class {
 };
 
 // src/Views/TodoListView.ts
-var import_obsidian8 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 
 // src/ui/TodoSidePanelComponent.tsx
 var React17 = __toESM(require_react());
@@ -47538,7 +47587,7 @@ function MountSidePanelComponent(onElement, props) {
 }
 
 // src/Views/TodoListView.ts
-var _TodoListView = class _TodoListView extends import_obsidian8.ItemView {
+var _TodoListView = class _TodoListView extends import_obsidian9.ItemView {
   constructor(leaf, deps, todoIndex, settings) {
     super(leaf);
     this.deps = deps;
@@ -47572,16 +47621,16 @@ _TodoListView.viewType = "pw.todo-list";
 var TodoListView = _TodoListView;
 
 // src/Views/TodoReportView.ts
-var import_obsidian11 = require("obsidian");
+var import_obsidian12 = require("obsidian");
 
 // src/ui/TodoReportComponent.tsx
 var React18 = __toESM(require_react());
 var import_client3 = __toESM(require_client());
-var import_obsidian10 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 
 // src/Views/ReportExportModal.ts
-var import_obsidian9 = require("obsidian");
-var ReportExportModal = class extends import_obsidian9.Modal {
+var import_obsidian10 = require("obsidian");
+var ReportExportModal = class extends import_obsidian10.Modal {
   constructor(app, allTodos, initialConfig, onSubmit) {
     super(app);
     this.config = __spreadValues({}, initialConfig);
@@ -47591,33 +47640,33 @@ var ReportExportModal = class extends import_obsidian9.Modal {
     const { contentEl } = this;
     contentEl.addClass("pw-export-modal");
     contentEl.createEl("h2", { text: "Export Report" });
-    new import_obsidian9.Setting(contentEl).setName("Start Date").setDesc("Beginning of report period").addText(
+    new import_obsidian10.Setting(contentEl).setName("Start Date").setDesc("Beginning of report period").addText(
       (text2) => text2.setValue(
         this.config.startDate ? this.config.startDate.toISODate() || "" : ""
       ).setPlaceholder("YYYY-MM-DD").onChange((value) => __async(this, null, function* () {
         this.config.startDate = value ? DateTime.fromISO(value) : null;
       }))
     );
-    new import_obsidian9.Setting(contentEl).setName("End Date").setDesc("End of report period").addText(
+    new import_obsidian10.Setting(contentEl).setName("End Date").setDesc("End of report period").addText(
       (text2) => text2.setValue(
         this.config.endDate ? this.config.endDate.toISODate() || "" : ""
       ).setPlaceholder("YYYY-MM-DD").onChange((value) => __async(this, null, function* () {
         this.config.endDate = value ? DateTime.fromISO(value) : null;
       }))
     );
-    new import_obsidian9.Setting(contentEl).setName("Include Tasks with No Dates").setDesc(
+    new import_obsidian10.Setting(contentEl).setName("Include Tasks with No Dates").setDesc(
       "Include tasks that don't have due dates or completion dates"
     ).addToggle(
       (toggle) => toggle.setValue(this.config.includeTasksWithNoDates).onChange((value) => {
         this.config.includeTasksWithNoDates = value;
       })
     );
-    new import_obsidian9.Setting(contentEl).setName("Include Notes").setDesc("Include subtasks and notes").addToggle(
+    new import_obsidian10.Setting(contentEl).setName("Include Notes").setDesc("Include subtasks and notes").addToggle(
       (toggle) => toggle.setValue(this.config.includeNotes).onChange((value) => {
         this.config.includeNotes = value;
       })
     );
-    new import_obsidian9.Setting(contentEl).addButton(
+    new import_obsidian10.Setting(contentEl).addButton(
       (button) => button.setButtonText("Export to Clipboard").setCta().onClick(() => {
         this.onSubmit(this.config);
         this.close();
@@ -48086,10 +48135,10 @@ function TodoReportComponent({ deps }) {
         });
         yield TodoExporter.exportToClipboard(todos, config, deps.settings);
         const message = `Report with ${filteredTodos.length} tasks exported to clipboard!`;
-        new import_obsidian10.Notice(message);
+        new import_obsidian11.Notice(message);
       } catch (error) {
         console.error("Failed to export report:", error);
-        new import_obsidian10.Notice("Failed to export report. See console for details.");
+        new import_obsidian11.Notice("Failed to export report. See console for details.");
       }
     });
     const modal = new ReportExportModal(deps.app, todos, initialConfig, onSubmit);
@@ -48110,7 +48159,7 @@ function MountTodoReportComponent(onElement, props) {
 }
 
 // src/Views/TodoReportView.ts
-var _TodoReportView = class _TodoReportView extends import_obsidian11.ItemView {
+var _TodoReportView = class _TodoReportView extends import_obsidian12.ItemView {
   constructor(leaf, deps, settings) {
     super(leaf);
     this.deps = deps;
@@ -48159,7 +48208,7 @@ var OpenReportCommand = class {
 };
 
 // src/main.ts
-var ProletarianWizard = class extends import_obsidian12.Plugin {
+var ProletarianWizard = class extends import_obsidian13.Plugin {
   constructor(app, manifest) {
     super(app, manifest);
     this.logger = new ConsoleLogger(3 /* ERROR */);
@@ -48244,6 +48293,7 @@ var ProletarianWizard = class extends import_obsidian12.Plugin {
       this.addCommand(openPlanningSplitVCommand);
       this.addCommand(openPlanningSplitHCommand);
       this.addCommand(openReportCommand);
+      this.addCommand(new OpenEisenhowerViewCommand(this.app));
       this.addSettingTab(new ProletarianWizardSettingsTab(this.app, this));
       this.addRibbonIcon("calendar-glyph", "Open planning", (_) => {
         openPlanningCommand.callback();
@@ -48296,11 +48346,23 @@ var ProletarianWizard = class extends import_obsidian12.Plugin {
       view.render();
       return view;
     });
+    this.registerView(EisenhowerView.viewType, (leaf) => {
+      const view = new EisenhowerView(
+        leaf,
+        {
+          logger: this.logger,
+          todoIndex: this.todoIndex,
+          settings: this.settings
+        }
+      );
+      view.render();
+      return view;
+    });
   }
   registerEvents() {
     this.registerEvent(
       this.app.vault.on("modify", (file) => {
-        if (file instanceof import_obsidian12.TFile && file.extension === "md") {
+        if (file instanceof import_obsidian13.TFile && file.extension === "md") {
           this.todoIndex.fileUpdated(
             new ObsidianFile(this.app, file)
           );
@@ -48309,7 +48371,7 @@ var ProletarianWizard = class extends import_obsidian12.Plugin {
     );
     this.registerEvent(
       this.app.vault.on("create", (file) => {
-        if (file instanceof import_obsidian12.TFile && file.extension === "md") {
+        if (file instanceof import_obsidian13.TFile && file.extension === "md") {
           this.todoIndex.fileCreated(
             new ObsidianFile(this.app, file)
           );
@@ -48318,7 +48380,7 @@ var ProletarianWizard = class extends import_obsidian12.Plugin {
     );
     this.registerEvent(
       this.app.vault.on("delete", (file) => {
-        if (file instanceof import_obsidian12.TFile && file.extension === "md") {
+        if (file instanceof import_obsidian13.TFile && file.extension === "md") {
           this.todoIndex.fileDeleted(
             new ObsidianFile(this.app, file)
           );
@@ -48327,7 +48389,7 @@ var ProletarianWizard = class extends import_obsidian12.Plugin {
     );
     this.registerEvent(
       this.app.vault.on("rename", (file, oldPath) => {
-        if (file instanceof import_obsidian12.TFile && file.extension === "md") {
+        if (file instanceof import_obsidian13.TFile && file.extension === "md") {
           this.todoIndex.fileRenamed(
             oldPath,
             new ObsidianFile(this.app, file)
@@ -48346,7 +48408,7 @@ var ProletarianWizard = class extends import_obsidian12.Plugin {
         leaf = this.app.workspace.getLeaf(false);
       }
       yield leaf.openFile(file);
-      let view = this.app.workspace.getActiveViewOfType(import_obsidian12.MarkdownView);
+      let view = this.app.workspace.getActiveViewOfType(import_obsidian13.MarkdownView);
       const lineContent = yield view.editor.getLine(line);
       view.editor.setSelection(
         { ch: 0, line },
