@@ -169,75 +169,90 @@ render() {
 	  const list = boxEl.createDiv({ cls: "pw-eisenhower-list" });
 	  const hasTasksModal = !!this.getTasksApi()?.editTaskLineModal;
 	
+	const renderList = async (boxEl: HTMLElement, items: any[]) => {
+	  if (!items.length) {
+		boxEl.createEl("div", { text: "—", cls: "pw-eisenhower-empty" });
+		return;
+	  }
+	
+	  const list = boxEl.createDiv({ cls: "pw-eisenhower-list" });
+	  const hasTasksModal = !!this.getTasksApi()?.editTaskLineModal;
+	
 	  for (const t of items) {
-	    const file = this.getTodoFile(t);
-	    const lineNo = this.getTodoLine(t);
-	    const sourcePath = file?.path ?? "";
-	    const fileLabel = this.sourceFileLabel(t); // ex: "2025-12-28"
+		const file = this.getTodoFile(t);
+		const lineNo = this.getTodoLine(t);
+		const sourcePath = file?.path ?? "";
+		const fileLabel = this.sourceFileLabel(t);
 	
-	    const textRaw = String(t?.text ?? "");
-	    const label = this.stripEisenhowerTags(textRaw) || "(sans texte)";
+		const textRaw = String(t?.text ?? "");
+		const labelRaw = this.stripEisenhowerTags(textRaw) || "(sans texte)";
 	
-	    const row = list.createDiv({ cls: "pw-eisenhower-row" });
+		const row = list.createDiv({ cls: "pw-eisenhower-row" });
 	
-	    // Checkbox (même look que Markdown Preview)
-	    const cb = row.createEl("input", { type: "checkbox", cls: "task-list-item-checkbox" });
-	    cb.tabIndex = -1;
-	
-	    (async () => {
-	      if (!file || lineNo == null) return;
-	      const ln = await this.readLineFromFile(file, lineNo);
-	      if (!ln) return;
-	      const st = this.getCheckboxState(ln);
-	      cb.checked = st === "DONE";
-	    })();
-	
-	    cb.onclick = async (ev) => {
-	      ev.preventDefault();
-	      ev.stopPropagation();
-	      await this.toggleTodoStatus(t);
-	      if (file && lineNo != null) {
-	        const ln = await this.readLineFromFile(file, lineNo);
-	        const st = ln ? this.getCheckboxState(ln) : "NONE";
-	        cb.checked = st === "DONE";
-	      }
-	    };
-	
+		// --- conteneur unique: checkbox + texte + crayon ---
 		const main = row.createDiv({ cls: "pw-eisenhower-main" });
-		
-		const md = sourcePath
-		  ? `[[${sourcePath.replace(/\.md$/i, "")}|${fileLabel}]] — ${label}`
-		  : label;
-		
-		// 1) zone markdown
+	
+		// 1) checkbox DANS main
+		const cb = main.createEl("input", {
+		  type: "checkbox",
+		  cls: "task-list-item-checkbox",
+		});
+		cb.tabIndex = -1;
+	
+		// init checked depuis le fichier
+		if (file && lineNo != null) {
+		  const ln = await this.readLineFromFile(file, lineNo);
+		  if (ln) cb.checked = this.getCheckboxState(ln) === "DONE";
+		}
+	
+		cb.onclick = async (ev) => {
+		  ev.preventDefault();
+		  ev.stopPropagation();
+		  await this.toggleTodoStatus(t);
+	
+		  if (file && lineNo != null) {
+			const ln = await this.readLineFromFile(file, lineNo);
+			cb.checked = ln ? this.getCheckboxState(ln) === "DONE" : cb.checked;
+		  }
+		};
+	
+		// 2) texte markdown
 		const mdHost = main.createSpan({ cls: "pw-eisenhower-md" });
-		this.renderInlineMarkdown(mdHost, md, sourcePath || "");
-		
-		// 2) crayon INLINE (un seul)
-		const editBtn = main.createEl("button", { cls: "pw-eisenhower-edit-inline", text: "✏️" });
+	
+		const md = sourcePath
+		  ? `[[${sourcePath.replace(/\.md$/i, "")}|${fileLabel}]] — ${this.normalizePeopleLinkLabels(labelRaw)}`
+		  : this.normalizePeopleLinkLabels(labelRaw);
+	
+		await this.renderInlineMarkdown(mdHost, md, sourcePath || "");
+	
+		// 3) crayon INLINE (juste après texte)
+		const editBtn = main.createEl("button", {
+		  cls: "pw-eisenhower-edit-inline",
+		  text: "✏️",
+		});
 		editBtn.type = "button";
 		editBtn.title = hasTasksModal ? "Éditer (Tasks modal)" : "Tasks modal indisponible";
 		editBtn.disabled = !hasTasksModal;
 		editBtn.onclick = async (ev) => {
-		  ev.preventDefault(); ev.stopPropagation();
+		  ev.preventDefault();
+		  ev.stopPropagation();
 		  await this.editWithTasksModal(t);
 		};
 	
-	    // clic “ligne entière” -> ouvrir occurrence (note + ligne)
-	    row.onclick = async (ev) => {
-	      // laisser les clics sur liens/checkbox/boutons faire leur vie
-	      const el = ev.target as HTMLElement;
-	      if (el.closest("a, input, button")) return;
-	      await this.openTodoOccurrence(t);
-	    };
+		// clic ligne -> ouvrir occurrence (sauf clic sur input/bouton/lien)
+		row.onclick = async (ev) => {
+		  const el = ev.target as HTMLElement;
+		  if (el.closest("a, input, button")) return;
+		  await this.openTodoOccurrence(t);
+		};
 	  }
-	};	
+	};
 	// Clear the small “rule” text and replace with lists
-	q1.empty(); q1.createEl("h3", { text: "Q1 — Urgent & Important" }); renderList(q1, buckets.Q1);
-	q2.empty(); q2.createEl("h3", { text: "Q2 — Important (not urgent)" }); renderList(q2, buckets.Q2);
-	q3.empty(); q3.createEl("h3", { text: "Q3 — Urgent (not important)" }); renderList(q3, buckets.Q3);
-	q4.empty(); q4.createEl("h3", { text: "Q4 — Someday/Maybe" }); renderList(q4, buckets.Q4);
-	inbox.empty(); inbox.createEl("h3", { text: "Inbox — non classé" }); renderList(inbox, buckets.INBOX);
+	q1.empty(); q1.createEl("h3", { text: "Q1 — Urgent & Important" }); await renderList(q1, buckets.Q1);
+	q2.empty(); q2.createEl("h3", { text: "Q2 — Important (not urgent)" }); await renderList(q2, buckets.Q2);
+	q3.empty(); q3.createEl("h3", { text: "Q3 — Urgent (not important)" }); await renderList(q3, buckets.Q3);
+	q4.empty(); q4.createEl("h3", { text: "Q4 — Someday/Maybe" }); await renderList(q4, buckets.Q4);
+	inbox.empty(); inbox.createEl("h3", { text: "Inbox — non classé" }); await renderList(inbox, buckets.INBOX);
 	}
 	
 	private getTodoFile(t: any): TFile | null {
