@@ -110,7 +110,7 @@ export class EisenhowerView extends ItemView {
 	  const cur = m[2].toLowerCase();
 	  const next = cur === "x" ? " " : "x";
 	  return `${m[1]}${next}${m[3]}${m[4]}`;
-	}
+	}	
 	
 	private sourceFileLabel(t: any): string {
 	  const f = t?.file;
