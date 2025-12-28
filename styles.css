@@ -523,3 +523,52 @@
   background: var(--background-secondary-alt);
 }
 
+.pw-eisenhower-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-primary);
+}
+
+.pw-eisenhower-row:hover { background: var(--background-secondary-alt); }
+
+.pw-eisenhower-status {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.pw-eisenhower-main { flex: 1 1 auto; min-width: 0; }
+
+.pw-eisenhower-title {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--text-normal);
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.pw-eisenhower-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.pw-eisenhower-occ { text-decoration: none; }
+
+.pw-eisenhower-right { flex: 0 0 auto; }
+
+.pw-eisenhower-edit {
+  border-radius: 8px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  cursor: pointer;
+  padding: 2px 8px;
+}
