@@ -180,7 +180,7 @@ export default class ProletarianWizard extends Plugin {
 			return view;
 		});
 
-		this.registerView(EISENHOWER_VIEW_TYPE, (leaf) => {
+		this.registerView(EisenhowerView.viewType, (leaf) => {
 			const view = new EisenhowerView(
 				leaf,
 				{
