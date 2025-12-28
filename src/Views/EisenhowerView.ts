@@ -257,8 +257,24 @@ export class EisenhowerView extends ItemView {
 	  containerEl.addClass("pw-eisenhower-root");
 	const header = containerEl.createDiv({ cls: "pw-eisenhower-header" });
 	
+	const header = containerEl.createDiv({ cls: "pw-eisenhower-header" });
+	
 	header.createEl("h2", { text: "Eisenhower Matrix" });
 	
+	const actions = header.createDiv({ cls: "pw-eisenhower-actions" });
+	
+	const refreshBtn = actions.createEl("button", {
+	  cls: "pw-eisenhower-refresh",
+	  text: "↻",
+	});
+	refreshBtn.type = "button";
+	refreshBtn.title = "Rafraîchir la matrice";
+	refreshBtn.onclick = (ev) => {
+	  ev.preventDefault();
+	  ev.stopPropagation();
+	  void this.refresh("button");
+	};
+		
 	const actions = header.createDiv({ cls: "pw-eisenhower-actions" });
 	
 	const refreshBtn = actions.createEl("button", {
