@@ -459,6 +459,10 @@
   padding: 12px;
   background: var(--background-secondary);
   min-height: 160px;
+
+  /* scroll */
+  max-height: calc(100vh - 220px);
+  overflow: auto;
 }
 
 .pw-eisenhower-card h3 {
@@ -472,5 +476,7 @@
 
 .pw-eisenhower-inbox {
   grid-column: 1 / -1;
-  min-height: 120px;
+  max-height: 260px;      /* inbox plus basse */
+  overflow: auto;
 }
+
