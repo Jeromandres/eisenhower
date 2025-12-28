@@ -91,6 +91,7 @@ export class EisenhowerView extends ItemView {
 	  }
 	
 	  await this.replaceLineInFile(file, line, next);
+	  await this.render(); // refresh
 	}
 	
 	private async editWithTasksModal(t: any) {
@@ -117,6 +118,7 @@ export class EisenhowerView extends ItemView {
 	
 	  if (!edited) return; // cancel
 	  await this.replaceLineInFile(file, line, edited);
+	  await this.render(); // refresh
 	}
 
 	private normalizePeopleLinkLabels(text: string): string {
@@ -180,7 +182,9 @@ export class EisenhowerView extends ItemView {
 	  inbox.createEl("div", { text: "Aucun tag: #urgent / #important / #someday" });
 	
 		// Collect tasks from index (best-effort, without assuming exact API)
-		const allTasks: any[] = this.deps?.todoIndex?.todos ?? [];
+	  const allTasks: any[] = (this.deps?.todoIndex?.todos ?? []).filter(
+		  (t: any) => t?.status !== 4 // TodoStatus.Complete
+		);
 		
 	const buckets: Record<"Q1"|"Q2"|"Q3"|"Q4"|"INBOX", any[]> = { Q1: [], Q2: [], Q3: [], Q4: [], INBOX: [] };
 	
