@@ -1,31 +1,52 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
+import { ItemView, WorkspaceLeaf, App } from "obsidian";
+import { Logger } from "../infrastructure/logger";
+import { TodoIndex } from "../domain/TodoIndex";
+import { PluginSettings } from "../domain/PluginSettings";
 
 export const EISENHOWER_VIEW_TYPE = "eisenhower-view";
 
+interface EisenhowerDeps {
+	logger: Logger;
+	todoIndex: TodoIndex;
+	settings: PluginSettings;
+	app: App;
+}
+
 export class EisenhowerView extends ItemView {
-  constructor(leaf: WorkspaceLeaf) {
-    super(leaf);
-  }
+	private logger: Logger;
+	private todoIndex: TodoIndex;
+	private settings: PluginSettings;
+	private app: App;
 
-  getViewType(): string {
-    return EISENHOWER_VIEW_TYPE;
-  }
+	constructor(leaf: WorkspaceLeaf, deps: EisenhowerDeps) {
+		super(leaf);
+		this.logger = deps.logger;
+		this.todoIndex = deps.todoIndex;
+		this.settings = deps.settings;
+		this.app = deps.app;
+	}
 
-  getDisplayText(): string {
-    return "Eisenhower Matrix";
-  }
+	getViewType(): string {
+		return EISENHOWER_VIEW_TYPE;
+	}
 
-  async onOpen() {
-    const { containerEl } = this;
-    containerEl.empty();
+	getDisplayText(): string {
+		return "Eisenhower Matrix";
+	}
 
-    containerEl.createEl("h2", { text: "Eisenhower Matrix" });
-    containerEl.createEl("p", {
-      text: "View loaded. Next: 2×2 grid + drag & drop."
-    });
-  }
+	render() {
+		const { containerEl } = this;
+		containerEl.empty();
 
-  async onClose() {
-    this.containerEl.empty();
-  }
+		containerEl.createEl("h2", { text: "Eisenhower Matrix" });
+		containerEl.createEl("p", {
+			text: "Ready. Next step: 2×2 grid based on #urgent / #important.",
+		});
+
+		this.logger.info("Eisenhower view rendered");
+	}
+
+	async onClose() {
+		this.containerEl.empty();
+	}
 }
