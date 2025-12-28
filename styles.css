@@ -173,3 +173,10 @@
 .pw-eisenhower-md { display: inline !important; }
 .pw-eisenhower-md p { display: inline !important; margin: 0 !important; }
 .pw-eisenhower-md * { white-space: normal; } /* garde le wrap si tâche longue */
+
+.pw-eisenhower-dropzone--over{
+  outline: 2px dashed var(--interactive-accent);
+  outline-offset: 6px;
+}
+.pw-eisenhower-row{ cursor: grab; }
+.pw-eisenhower-row:active{ cursor: grabbing; }
