@@ -1,4 +1,6 @@
 import { ItemView, WorkspaceLeaf, MarkdownView, TFile, Notice, MarkdownRenderer, Component } from "obsidian";
+import { getTodoId } from "../domain/TodoItem";
+import { TodoItemDragType } from "../domain/Consts";
 
 export class EisenhowerView extends ItemView {
   static viewType = "eisenhower-view";
@@ -29,6 +31,47 @@ export class EisenhowerView extends ItemView {
     return "Eisenhower Matrix";
   }
 
+	private stripEisenhowerTagsFromLine(line: string): string {
+	  return line
+		.replace(/(^|\s)#urgent(\b)/gi, "$1")
+		.replace(/(^|\s)#important(\b)/gi, "$1")
+		.replace(/(^|\s)#someday(\b)/gi, "$1")
+		.replace(/\s+/g, " ")
+		.trimEnd();
+	}
+	
+	private tagsForBucket(bucket: "Q1" | "Q2" | "Q3" | "Q4" | "INBOX"): string[] {
+	  switch (bucket) {
+		case "Q1": return ["#urgent", "#important"];
+		case "Q2": return ["#important"];
+		case "Q3": return ["#urgent"];
+		case "Q4": return ["#someday"];
+		case "INBOX": return [];
+	  }
+	}
+	
+	private applyBucketToLine(line: string, bucket: "Q1" | "Q2" | "Q3" | "Q4" | "INBOX"): string {
+	  const base = this.stripEisenhowerTagsFromLine(line);
+	  const tags = this.tagsForBucket(bucket);
+	  if (!tags.length) return base;
+	  return `${base} ${tags.join(" ")}`.trimEnd();
+	}
+	
+	private async moveTodoToBucket(t: any, bucket: "Q1" | "Q2" | "Q3" | "Q4" | "INBOX") {
+	  const file = this.getTodoFile(t);
+	  const lineNo = this.getTodoLine(t);
+	  if (!file || lineNo == null) return;
+	
+	  const original = await this.readLineFromFile(file, lineNo);
+	  if (!original) return;
+	
+	  const updated = this.applyBucketToLine(original, bucket);
+	  if (updated === original) return;
+	
+	  await this.replaceLineInFile(file, lineNo, updated);
+	  await this.render();
+	}
+	
 	private getTasksApi() {
 	  const plugins = (this.app as any).plugins;
 	  return plugins?.getPlugin?.("obsidian-tasks-plugin")?.apiV1;
@@ -180,11 +223,39 @@ export class EisenhowerView extends ItemView {
 	  const inbox = grid.createDiv({ cls: "pw-eisenhower-card pw-eisenhower-inbox" });
 	  inbox.createEl("h3", { text: "Inbox — non classé" });
 	  inbox.createEl("div", { text: "Aucun tag: #urgent / #important / #someday" });
+
+	  const makeDropZone = (boxEl: HTMLElement, bucket: "Q1"|"Q2"|"Q3"|"Q4"|"INBOX", idToTodo: Map<string, any>) => {
+		  boxEl.addClass("pw-eisenhower-dropzone");
+		
+		  boxEl.addEventListener("dragover", (ev) => {
+		    ev.preventDefault();
+		    boxEl.addClass("pw-eisenhower-dropzone--over");
+		  });
+		
+		  boxEl.addEventListener("dragleave", () => {
+		    boxEl.removeClass("pw-eisenhower-dropzone--over");
+		  });
+		
+		  boxEl.addEventListener("drop", async (ev: DragEvent) => {
+		    ev.preventDefault();
+		    boxEl.removeClass("pw-eisenhower-dropzone--over");
+		
+		    const id = ev.dataTransfer?.getData(TodoItemDragType) || ev.dataTransfer?.getData("text/plain");
+		    if (!id) return;
+		
+		    const todo = idToTodo.get(id);
+		    if (!todo) return;
+		
+		    await this.moveTodoToBucket(todo, bucket);
+		  });
+		};
 	
 		// Collect tasks from index (best-effort, without assuming exact API)
 	  const allTasks: any[] = (this.deps?.todoIndex?.todos ?? []).filter(
 		  (t: any) => t?.status !== 4 // TodoStatus.Complete
 		);
+	  const idToTodo = new Map<string, any>();
+	  for (const t of allTasks) idToTodo.set(getTodoId(t), t);
 		
 	const buckets: Record<"Q1"|"Q2"|"Q3"|"Q4"|"INBOX", any[]> = { Q1: [], Q2: [], Q3: [], Q4: [], INBOX: [] };
 	
@@ -225,6 +296,15 @@ export class EisenhowerView extends ItemView {
 			) || "(sans texte)";		
 			  
 			const row = list.createDiv({ cls: "pw-eisenhower-row" });
+
+			row.draggable = true;
+
+			const id = getTodoId(t);
+			row.addEventListener("dragstart", (ev: DragEvent) => {
+			  ev.dataTransfer?.setData(TodoItemDragType, id);
+			  ev.dataTransfer?.setData("text/plain", id);
+			  ev.dataTransfer!.effectAllowed = "move";
+			});
 	
 			// --- conteneur unique (checkbox + texte + crayon) ---
 			const main = row.createDiv({ cls: "pw-eisenhower-main" });
@@ -296,11 +376,11 @@ export class EisenhowerView extends ItemView {
 		  }
 		};
 		// Clear the small “rule” text and replace with lists
-		q1.empty(); q1.createEl("h3", { text: "Q1 — Urgent & Important" }); await renderList(q1, buckets.Q1);
-		q2.empty(); q2.createEl("h3", { text: "Q2 — Important (not urgent)" }); await renderList(q2, buckets.Q2);
-		q3.empty(); q3.createEl("h3", { text: "Q3 — Urgent (not important)" }); await renderList(q3, buckets.Q3);
-		q4.empty(); q4.createEl("h3", { text: "Q4 — Someday/Maybe" }); await renderList(q4, buckets.Q4);
-		inbox.empty(); inbox.createEl("h3", { text: "Inbox — non classé" }); await renderList(inbox, buckets.INBOX);
+		q1.empty(); q1.createEl("h3", { text: "Q1 — Urgent & Important" }); makeDropZone(q1, "Q1", idToTodo); await renderList(q1, buckets.Q1);
+		q2.empty(); q2.createEl("h3", { text: "Q2 — Important (not urgent)" }); makeDropZone(q2, "Q2", idToTodo); await renderList(q2, buckets.Q2);
+		q3.empty(); q3.createEl("h3", { text: "Q3 — Urgent (not important)" }); makeDropZone(q3, "Q3", idToTodo); await renderList(q3, buckets.Q3);
+		q4.empty(); q4.createEl("h3", { text: "Q4 — Someday/Maybe" }); makeDropZone(q4, "Q4", idToTodo); await renderList(q4, buckets.Q4);
+		inbox.empty(); inbox.createEl("h3", { text: "Inbox — non classé" }); makeDropZone(inbox, "INBOX", idToTodo); await renderList(inbox, buckets.INBOX);
 		}
 	
 	private getTodoFile(t: any): TFile | null {
