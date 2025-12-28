@@ -51,6 +51,31 @@ render() {
   inbox.createEl("div", { text: "Aucun tag: #urgent / #important / #someday" });
 }
 
+	private hasTag(text: string, tag: string): boolean {
+	  const re = new RegExp(`(^|\\s)#${tag}(\\b|\\s)`, "i");
+	  return re.test(text ?? "");
+	}
+	
+	private bucketForTask(text: string): "Q1" | "Q2" | "Q3" | "Q4" | "INBOX" {
+	  const urgent = this.hasTag(text, "urgent");
+	  const important = this.hasTag(text, "important");
+	  const someday = this.hasTag(text, "someday");
+	
+	  if (urgent && important) return "Q1";
+	  if (important && !urgent) return "Q2";
+	  if (urgent && !important) return "Q3";
+	  if (someday && !urgent && !important) return "Q4";
+	  return "INBOX";
+	}
+	
+	private stripEisenhowerTags(text: string): string {
+	  return (text ?? "")
+	    .replace(/(^|\s)#urgent(\b)/gi, "$1")
+	    .replace(/(^|\s)#important(\b)/gi, "$1")
+	    .replace(/(^|\s)#someday(\b)/gi, "$1")
+	    .replace(/\s+/g, " ")
+	    .trim();
+	}
   async onOpen() {
     this.render();
   }
@@ -58,4 +83,5 @@ render() {
   async onClose() {
     this.containerEl.empty();
   }
+	
 }
