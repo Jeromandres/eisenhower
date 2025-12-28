@@ -1,52 +1,41 @@
-import { ItemView, WorkspaceLeaf, App } from "obsidian";
-import { Logger } from "../infrastructure/logger";
-import { TodoIndex } from "../domain/TodoIndex";
-import { PluginSettings } from "../domain/PluginSettings";
-
-export const EISENHOWER_VIEW_TYPE = "eisenhower-view";
-
-interface EisenhowerDeps {
-	logger: Logger;
-	todoIndex: TodoIndex;
-	settings: PluginSettings;
-	app: App;
-}
+import { ItemView, WorkspaceLeaf } from "obsidian";
 
 export class EisenhowerView extends ItemView {
-	private logger: Logger;
-	private todoIndex: TodoIndex;
-	private settings: PluginSettings;
-	private app: App;
+  static viewType = "eisenhower-view";
 
-	constructor(leaf: WorkspaceLeaf, deps: EisenhowerDeps) {
-		super(leaf);
-		this.logger = deps.logger;
-		this.todoIndex = deps.todoIndex;
-		this.settings = deps.settings;
-		this.app = deps.app;
-	}
+  private deps: { logger?: any; todoIndex?: any; settings?: any };
 
-	getViewType(): string {
-		return EISENHOWER_VIEW_TYPE;
-	}
+  constructor(
+    leaf: WorkspaceLeaf,
+    deps: { logger?: any; todoIndex?: any; settings?: any } = {}
+  ) {
+    super(leaf);
+    this.deps = deps;
+  }
 
-	getDisplayText(): string {
-		return "Eisenhower Matrix";
-	}
+  getViewType(): string {
+    return EisenhowerView.viewType;
+  }
 
-	render() {
-		const { containerEl } = this;
-		containerEl.empty();
+  getDisplayText(): string {
+    return "Eisenhower Matrix";
+  }
 
-		containerEl.createEl("h2", { text: "Eisenhower Matrix" });
-		containerEl.createEl("p", {
-			text: "Ready. Next step: 2×2 grid based on #urgent / #important.",
-		});
+  render() {
+    const { containerEl } = this;
+    containerEl.empty();
 
-		this.logger.info("Eisenhower view rendered");
-	}
+    containerEl.createEl("h2", { text: "Eisenhower Matrix" });
+    containerEl.createEl("p", { text: "View loaded." });
 
-	async onClose() {
-		this.containerEl.empty();
-	}
+    this.deps.logger?.info?.("Eisenhower view rendered");
+  }
+
+  async onOpen() {
+    this.render();
+  }
+
+  async onClose() {
+    this.containerEl.empty();
+  }
 }
