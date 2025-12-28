@@ -257,7 +257,6 @@ export class EisenhowerView extends ItemView {
 	  containerEl.addClass("pw-eisenhower-root");
 	const header = containerEl.createDiv({ cls: "pw-eisenhower-header" });
 	
-	const header = containerEl.createDiv({ cls: "pw-eisenhower-header" });
 	
 	header.createEl("h2", { text: "Eisenhower Matrix" });
 	
@@ -275,19 +274,6 @@ export class EisenhowerView extends ItemView {
 	  void this.refresh("button");
 	};
 		
-	const actions = header.createDiv({ cls: "pw-eisenhower-actions" });
-	
-	const refreshBtn = actions.createEl("button", {
-	  cls: "pw-eisenhower-refresh",
-	  text: "↻",
-	});
-	refreshBtn.type = "button";
-	refreshBtn.title = "Rafraîchir la matrice";
-	refreshBtn.onclick = (ev) => {
-	  ev.preventDefault();
-	  ev.stopPropagation();
-	  void this.refresh("button");
-	};	
 	  const grid = containerEl.createDiv({ cls: "pw-eisenhower-grid" });
 	
 	  const q1 = grid.createDiv({ cls: "pw-eisenhower-card" });
