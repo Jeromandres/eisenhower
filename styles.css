@@ -147,3 +147,24 @@
   line-height: 1;
   padding: 2px 8px;
 }
+
+.pw-eisenhower-main{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+
+.pw-eisenhower-md{
+  flex:1 1 auto;
+  min-width:0;
+}
+
+.pw-eisenhower-md p{ margin:0; }
+
+.pw-eisenhower-edit-inline{
+  flex:0 0 auto;
+  height:24px;
+  padding:2px 8px;
+  line-height:1;
+}
