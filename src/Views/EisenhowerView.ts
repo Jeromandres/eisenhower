@@ -16,7 +16,7 @@ export class EisenhowerView extends ItemView {
 
   getViewType(): string {
     return EisenhowerView.viewType;
-  }https://github.com/Jeromandres/eisenhower/blob/master/src/Views/EisenhowerView.ts
+  }
 
   getDisplayText(): string {
     return "Eisenhower Matrix";
