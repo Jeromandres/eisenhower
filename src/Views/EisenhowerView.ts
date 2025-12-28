@@ -71,11 +71,20 @@ render() {
 	    boxEl.createEl("div", { text: "—", cls: "pw-eisenhower-empty" });
 	    return;
 	  }
-	  const ul = boxEl.createEl("ul", { cls: "pw-eisenhower-list" });
+	
+	  const list = boxEl.createDiv({ cls: "pw-eisenhower-list" });
+	
 	  for (const t of items) {
-	    const li = ul.createEl("li");
-	    const label = this.stripEisenhowerTags(String(t?.text ?? t?.line ?? ""));
-	    li.createEl("span", { text: label || "(sans texte)" });
+	    const textRaw = String(t?.text ?? t?.line ?? "");
+	    const label = this.stripEisenhowerTags(textRaw) || "(sans texte)";
+	
+	    const row = list.createDiv({ cls: "pw-eisenhower-row" });
+	
+	    // petit “bullet” visuel (sans checkbox pour l’instant)
+	    row.createDiv({ cls: "pw-eisenhower-dot" });
+	
+	    const main = row.createDiv({ cls: "pw-eisenhower-main" });
+	    main.createDiv({ text: label, cls: "pw-eisenhower-title" });
 	  }
 	};
 	
