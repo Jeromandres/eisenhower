@@ -441,3 +441,31 @@
   color: var(--text-on-accent);
   border-color: var(--interactive-accent);
 }
+
+.pw-eisenhower-root {
+  padding: 12px;
+}
+
+.pw-eisenhower-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.pw-eisenhower-card {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--background-secondary);
+  min-height: 160px;
+}
+
+.pw-eisenhower-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.pw-eisenhower-card div {
+  opacity: 0.85;
+}
