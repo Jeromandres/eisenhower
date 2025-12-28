@@ -216,9 +216,11 @@ async render() {
 		  : labelRaw;
 		
 		await this.renderInlineMarkdown(mdHost, md, sourcePath || "");
+
+		// ✅ AJOUTER
+		const p = mdHost.querySelector("p") ?? mdHost;
 		
-		// 3) crayon (dans main, juste après le texte)
-		const editBtn = main.createEl("button", {
+		const editBtn = p.createEl("button", {
 		  cls: "pw-eisenhower-edit-inline",
 		  text: "✏️",
 		});
