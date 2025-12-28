@@ -584,11 +584,38 @@
   min-width: 0;
 }
 
-.pw-eisenhower-occ-btn,
-.pw-eisenhower-edit {
+.pw-eisenhower-row{
+  padding: 6px 10px;           /* au lieu de 8–10px */
+  align-items: center;         /* au lieu de flex-start */
+  gap: 8px;
+}
+
+.pw-eisenhower-main{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Le rendu Markdown (ton texte) doit pouvoir se compresser */
+.pw-eisenhower-main > *:first-child{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* crayon compact en fin de ligne */
+.pw-eisenhower-edit-inline{
   border-radius: 8px;
   border: 1px solid var(--background-modifier-border);
   background: var(--background-secondary);
   cursor: pointer;
   padding: 2px 8px;
+  height: 26px;
+  line-height: 1;
+}
+
+/* checkbox plus compacte */
+.task-list-item-checkbox{
+  margin: 0;
+  transform: scale(0.95);
 }
