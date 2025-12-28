@@ -178,50 +178,65 @@ async render() {
 	    const textRaw = String(t?.text ?? "");
 	    const labelRaw = this.stripEisenhowerTags(textRaw) || "(sans texte)";
 	
-	    const row = list.createDiv({ cls: "pw-eisenhower-row" });
-	
-	    // --- conteneur unique: checkbox + texte + crayon ---
-	    const main = row.createDiv({ cls: "pw-eisenhower-main" });
-	
-	    // 1) checkbox DANS main
-	    const cb = main.createEl("input", { type: "checkbox", cls: "task-list-item-checkbox" });
-	    cb.tabIndex = -1;
-	
-	    if (file && lineNo != null) {
-	      const ln = await this.readLineFromFile(file, lineNo);
-	      if (ln) cb.checked = this.getCheckboxState(ln) === "DONE";
-	    }
-	
-	    cb.onclick = async (ev) => {
-	      ev.preventDefault();
-	      ev.stopPropagation();
-	      await this.toggleTodoStatus(t);
-	
-	      if (file && lineNo != null) {
-	        const ln = await this.readLineFromFile(file, lineNo);
-	        cb.checked = ln ? this.getCheckboxState(ln) === "DONE" : cb.checked;
-	      }
-	    };
-	
-	    // 2) texte markdown
-	    const mdHost = main.createSpan({ cls: "pw-eisenhower-md" });
-	
-	    const md = sourcePath
-	      ? `[[${sourcePath.replace(/\.md$/i, "")}|${fileLabel}]] — ${labelRaw}`
-	      : labelRaw;
-	
-	    await this.renderInlineMarkdown(mdHost, md, sourcePath || "");
-	
-	    // 3) crayon INLINE (juste après texte)
-	    const editBtn = main.createEl("button", { cls: "pw-eisenhower-edit-inline", text: "✏️" });
-	    editBtn.type = "button";
-	    editBtn.title = hasTasksModal ? "Éditer (Tasks modal)" : "Tasks modal indisponible";
-	    editBtn.disabled = !hasTasksModal;
-	    editBtn.onclick = async (ev) => {
-	      ev.preventDefault();
-	      ev.stopPropagation();
-	      await this.editWithTasksModal(t);
-	    };
+		const row = list.createDiv({ cls: "pw-eisenhower-row" });
+
+		// --- conteneur unique (checkbox + texte + crayon) ---
+		const main = row.createDiv({ cls: "pw-eisenhower-main" });
+		
+		// 1) checkbox (dans main)
+		const cb = main.createEl("input", {
+		  type: "checkbox",
+		  cls: "task-list-item-checkbox",
+		});
+		cb.tabIndex = -1;
+		
+		// init checked
+		if (file && lineNo != null) {
+		  const ln = await this.readLineFromFile(file, lineNo);
+		  if (ln) cb.checked = this.getCheckboxState(ln) === "DONE";
+		}
+		
+		cb.onclick = async (ev) => {
+		  ev.preventDefault();
+		  ev.stopPropagation();
+		  await this.toggleTodoStatus(t);
+		
+		  if (file && lineNo != null) {
+		    const ln = await this.readLineFromFile(file, lineNo);
+		    if (ln) cb.checked = this.getCheckboxState(ln) === "DONE";
+		  }
+		};
+		
+		// 2) texte markdown (dans main)
+		const mdHost = main.createSpan({ cls: "pw-eisenhower-md" });
+		
+		// >>> ICI ton bloc md : tu le gardes ICI, entre mdHost et renderInline
+		const md = sourcePath
+		  ? `[[${sourcePath.replace(/\.md$/i, "")}|${fileLabel}]] — ${labelRaw}`
+		  : labelRaw;
+		
+		await this.renderInlineMarkdown(mdHost, md, sourcePath || "");
+		
+		// 3) crayon (dans main, juste après le texte)
+		const editBtn = main.createEl("button", {
+		  cls: "pw-eisenhower-edit-inline",
+		  text: "✏️",
+		});
+		editBtn.type = "button";
+		editBtn.title = hasTasksModal ? "Éditer (Tasks modal)" : "Tasks modal indisponible";
+		editBtn.disabled = !hasTasksModal;
+		editBtn.onclick = async (ev) => {
+		  ev.preventDefault();
+		  ev.stopPropagation();
+		  await this.editWithTasksModal(t);
+		};
+		
+		// clic ligne -> ouvrir occurrence
+		row.onclick = async (ev) => {
+		  const el = ev.target as HTMLElement;
+		  if (el.closest("a, input, button")) return;
+		  await this.openTodoOccurrence(t);
+		};
 	
 	    // clic ligne -> ouvrir occurrence (sauf clic sur input/bouton/lien)
 	    row.onclick = async (ev) => {
