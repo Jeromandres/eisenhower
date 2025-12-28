@@ -168,3 +168,8 @@
   padding:2px 8px;
   line-height:1;
 }
+
+/* Empêche le MarkdownRenderer de créer des blocs qui cassent la ligne */
+.pw-eisenhower-md { display: inline !important; }
+.pw-eisenhower-md p { display: inline !important; margin: 0 !important; }
+.pw-eisenhower-md * { white-space: normal; } /* garde le wrap si tâche longue */
