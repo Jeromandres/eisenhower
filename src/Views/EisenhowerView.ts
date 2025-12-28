@@ -1,6 +1,6 @@
 import { ItemView, WorkspaceLeaf, MarkdownView, TFile, Notice, MarkdownRenderer, Component } from "obsidian";
 import { getTodoId } from "../domain/TodoItem";
-import { TodoItemDragType } from "../domain/Consts";
+import { Consts } from "../domain/Consts";
 
 export class EisenhowerView extends ItemView {
   static viewType = "eisenhower-view";
@@ -240,7 +240,7 @@ export class EisenhowerView extends ItemView {
 		    ev.preventDefault();
 		    boxEl.removeClass("pw-eisenhower-dropzone--over");
 		
-		    const id = ev.dataTransfer?.getData(TodoItemDragType) || ev.dataTransfer?.getData("text/plain");
+		    const id = ev.dataTransfer?.getData(Consts.TodoItemDragType) || ev.dataTransfer?.getData("text/plain");
 		    if (!id) return;
 		
 		    const todo = idToTodo.get(id);
@@ -301,7 +301,7 @@ export class EisenhowerView extends ItemView {
 
 			const id = getTodoId(t);
 			row.addEventListener("dragstart", (ev: DragEvent) => {
-			  ev.dataTransfer?.setData(TodoItemDragType, id);
+			  ev.dataTransfer?.setData(Consts.TodoItemDragType, id);
 			  ev.dataTransfer?.setData("text/plain", id);
 			  ev.dataTransfer!.effectAllowed = "move";
 			});
