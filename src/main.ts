@@ -179,15 +179,16 @@ export default class ProletarianWizard extends Plugin {
 		});
 
 		this.registerView(EISENHOWER_VIEW_TYPE, (leaf) => {
-	const view = new EisenhowerView(
-		leaf,
-		{
-			logger: this.logger,
-			todoIndex: this.todoIndex,
-			settings: this.settings,
-			app: this.app,
-		}
-	);
+			const view = new EisenhowerView(
+				leaf,
+				{
+					logger: this.logger,
+					todoIndex: this.todoIndex,
+					settings: this.settings,
+					app: this.app,
+				}
+			);
+			
 	view.render();
 	return view;
 });
