@@ -1,4 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
+import { MarkdownView, TFile } from "obsidian";
 
 export class EisenhowerView extends ItemView {
   static viewType = "eisenhower-view";
@@ -51,11 +52,7 @@ render() {
   inbox.createEl("div", { text: "Aucun tag: #urgent / #important / #someday" });
 
 	// Collect tasks from index (best-effort, without assuming exact API)
-	const allTasks: Array<any> =
-	  (this.deps?.todoIndex?.getAllTodos?.() ??
-	   this.deps?.todoIndex?.getTodos?.() ??
-	   this.deps?.todoIndex?.todos ??
-	   []) as any[];
+	const allTasks: any[] = this.deps?.todoIndex?.todos ?? [];
 	
 	const buckets: Record<string, any[]> = { Q1: [], Q2: [], Q3: [], Q4: [], INBOX: [] };
 	
@@ -68,7 +65,18 @@ render() {
 	
 	const renderList = (boxEl: HTMLElement, items: any[]) => {
 	  if (!items.length) {
-	    boxEl.createEl("div", { text: "—", cls: "pw-eisenhower-empty" });
+	    const row = list.createDiv({ cls: "pw-eisenhower-row" });
+
+		row.createDiv({ cls: "pw-eisenhower-dot" });
+		
+		const main = row.createDiv({ cls: "pw-eisenhower-main" });
+		
+		const a = main.createEl("a", { text: label, cls: "pw-eisenhower-title", href: "#" });
+		a.onclick = async (ev) => {
+		  ev.preventDefault();
+		  ev.stopPropagation();
+		  await this.openTodo(t);
+		};
 	    return;
 	  }
 	
@@ -95,7 +103,50 @@ render() {
 	q4.empty(); q4.createEl("h3", { text: "Q4 — Someday/Maybe" }); renderList(q4, buckets.Q4);
 	inbox.empty(); inbox.createEl("h3", { text: "Inbox — non classé" }); renderList(inbox, buckets.INBOX);
 	}
-
+	
+	private getTodoFile(t: any): TFile | null {
+	  // cas direct
+	  if (t?.file instanceof TFile) return t.file;
+	
+	  // cas "IFile<TFile>" (ObsidianFile) : souvent t.file.raw / t.file.file / t.file.tfile
+	  const f = t?.file;
+	  if (f?.raw instanceof TFile) return f.raw;
+	  if (f?.file instanceof TFile) return f.file;
+	  if (f?.tfile instanceof TFile) return f.tfile;
+	
+	  // cas "id" = path
+	  const path = f?.id ?? t?.path ?? t?.filePath;
+	  if (typeof path === "string") {
+	    const af = this.app.vault.getAbstractFileByPath(path);
+	    if (af instanceof TFile) return af;
+	  }
+	
+	  return null;
+	}
+	
+	private getTodoLine(t: any): number | null {
+	  const ln = t?.line ?? t?.lineNumber ?? t?.lineNo;
+	  return Number.isFinite(ln) ? Number(ln) : null;
+	}
+	
+	private async openTodo(t: any) {
+	  const file = this.getTodoFile(t);
+	  const line = this.getTodoLine(t);
+	
+	  if (!file) return;
+	
+	  const leaf = this.app.workspace.getLeaf(false);
+	  await leaf.openFile(file);
+	
+	  if (line == null) return;
+	
+	  const view = leaf.view instanceof MarkdownView ? leaf.view : this.app.workspace.getActiveViewOfType(MarkdownView);
+	  if (!view) return;
+	
+	  const lineContent = view.editor.getLine(line) ?? "";
+	  view.editor.setSelection({ ch: 0, line }, { ch: lineContent.length, line });
+	}
+	
 	private hasTag(text: string, tag: string): boolean {
 	  const re = new RegExp(`(^|\\s)#${tag}(\\b|\\s)`, "i");
 	  return re.test(text ?? "");
