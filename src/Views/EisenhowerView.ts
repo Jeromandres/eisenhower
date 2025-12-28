@@ -225,13 +225,53 @@ export class EisenhowerView extends ItemView {
 	  });
 	}
 	
+	private refreshScheduled = false;
+
+	private async refresh(reason = "manual") {
+	  if (this.refreshScheduled) return;
+	  this.refreshScheduled = true;
+	
+	  // évite les refresh en rafale (drag, modal, etc.)
+	  window.setTimeout(async () => {
+	    this.refreshScheduled = false;
+	    try {
+	      // important: vider le markdown renderer proprement
+	      this.mdComponent?.unload();
+	      this.mdComponent = new Component();
+	      this.addChild(this.mdComponent);
+	
+	      await this.render();
+	      // option: log
+	      // console.debug("[EIS] refreshed:", reason);
+	    } catch (e) {
+	      console.error("[EIS] refresh failed:", e);
+	      new Notice("Eisenhower: refresh failed (voir console).");
+	    }
+	  }, 50);
+	}
+		
 	async render() {
 	  const { containerEl } = this;
 	  containerEl.empty();
 	
 	  containerEl.addClass("pw-eisenhower-root");
-	  containerEl.createEl("h2", { text: "Eisenhower Matrix" });
+	const header = containerEl.createDiv({ cls: "pw-eisenhower-header" });
 	
+	header.createEl("h2", { text: "Eisenhower Matrix" });
+	
+	const actions = header.createDiv({ cls: "pw-eisenhower-actions" });
+	
+	const refreshBtn = actions.createEl("button", {
+	  cls: "pw-eisenhower-refresh",
+	  text: "↻",
+	});
+	refreshBtn.type = "button";
+	refreshBtn.title = "Rafraîchir la matrice";
+	refreshBtn.onclick = (ev) => {
+	  ev.preventDefault();
+	  ev.stopPropagation();
+	  void this.refresh("button");
+	};	
 	  const grid = containerEl.createDiv({ cls: "pw-eisenhower-grid" });
 	
 	  const q1 = grid.createDiv({ cls: "pw-eisenhower-card" });
