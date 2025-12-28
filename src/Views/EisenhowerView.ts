@@ -49,7 +49,43 @@ render() {
   const inbox = grid.createDiv({ cls: "pw-eisenhower-card pw-eisenhower-inbox" });
   inbox.createEl("h3", { text: "Inbox — non classé" });
   inbox.createEl("div", { text: "Aucun tag: #urgent / #important / #someday" });
-}
+
+	// Collect tasks from index (best-effort, without assuming exact API)
+	const allTasks: Array<any> =
+	  (this.deps?.todoIndex?.getAllTodos?.() ??
+	   this.deps?.todoIndex?.getTodos?.() ??
+	   this.deps?.todoIndex?.todos ??
+	   []) as any[];
+	
+	const buckets: Record<string, any[]> = { Q1: [], Q2: [], Q3: [], Q4: [], INBOX: [] };
+	
+	for (const t of allTasks) {
+	  const text = String(t?.text ?? t?.line ?? "");
+	  if (!text) continue;
+	  const b = this.bucketForTask(text);
+	  buckets[b].push(t);
+	}
+	
+	const renderList = (boxEl: HTMLElement, items: any[]) => {
+	  if (!items.length) {
+	    boxEl.createEl("div", { text: "—", cls: "pw-eisenhower-empty" });
+	    return;
+	  }
+	  const ul = boxEl.createEl("ul", { cls: "pw-eisenhower-list" });
+	  for (const t of items) {
+	    const li = ul.createEl("li");
+	    const label = this.stripEisenhowerTags(String(t?.text ?? t?.line ?? ""));
+	    li.createEl("span", { text: label || "(sans texte)" });
+	  }
+	};
+	
+	// Clear the small “rule” text and replace with lists
+	q1.empty(); q1.createEl("h3", { text: "Q1 — Urgent & Important" }); renderList(q1, buckets.Q1);
+	q2.empty(); q2.createEl("h3", { text: "Q2 — Important (not urgent)" }); renderList(q2, buckets.Q2);
+	q3.empty(); q3.createEl("h3", { text: "Q3 — Urgent (not important)" }); renderList(q3, buckets.Q3);
+	q4.empty(); q4.createEl("h3", { text: "Q4 — Someday/Maybe" }); renderList(q4, buckets.Q4);
+	inbox.empty(); inbox.createEl("h3", { text: "Inbox — non classé" }); renderList(inbox, buckets.INBOX);
+	}
 
 	private hasTag(text: string, tag: string): boolean {
 	  const re = new RegExp(`(^|\\s)#${tag}(\\b|\\s)`, "i");
