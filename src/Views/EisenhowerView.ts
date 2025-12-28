@@ -1,20 +1,20 @@
-import { ItemView, WorkspaceLeaf } from "obsidian";
-import { MarkdownView, TFile, Notice, MarkdownRenderer, Component } from "obsidian";
+import { ItemView, WorkspaceLeaf, MarkdownView, TFile, Notice, MarkdownRenderer, Component } from "obsidian";
 
 export class EisenhowerView extends ItemView {
   static viewType = "eisenhower-view";
 
   private deps: { logger?: any; todoIndex?: any; settings?: any };
 
+  private mdComponent = new Component();
+  
   constructor(
     leaf: WorkspaceLeaf,
     deps: { logger?: any; todoIndex?: any; settings?: any } = {}
   ) {
     super(leaf);
     this.deps = deps;
+	this.addChild(this.mdComponent);
   }
-
-  private mdComponent = new Component();
 
   private async renderInlineMarkdown(target: HTMLElement, md: string, sourcePath: string) {
     target.empty();
@@ -203,21 +203,22 @@ render() {
 	      }
 	    };
 	
-	    // Contenu rendu comme en Preview (wikilinks, @, etc.)
-	    const main = row.createDiv({ cls: "pw-eisenhower-main" });
-	
-	    const md = sourcePath
-	      ? `[[${sourcePath.replace(/\.md$/i, "")}|${fileLabel}]] — ${label}`
-	      : label;
-	
-	    // rendu preview
-	    this.renderInlineMarkdown(main, md, sourcePath || this.app.vault.getRoot().path);
-
-		const edit = main.createEl("button", { cls: "pw-eisenhower-edit-inline", text: "✏️" });
-		edit.type = "button";
-		edit.title = hasTasksModal ? "Éditer (Tasks modal)" : "Tasks modal indisponible";
-		edit.disabled = !hasTasksModal;
-		edit.onclick = async (ev) => {
+		const main = row.createDiv({ cls: "pw-eisenhower-main" });
+		
+		const md = sourcePath
+		  ? `[[${sourcePath.replace(/\.md$/i, "")}|${fileLabel}]] — ${label}`
+		  : label;
+		
+		// 1) zone markdown
+		const mdHost = main.createSpan({ cls: "pw-eisenhower-md" });
+		await this.renderInlineMarkdown(mdHost, md, sourcePath || "");
+		
+		// 2) crayon INLINE (un seul)
+		const editBtn = main.createEl("button", { cls: "pw-eisenhower-edit-inline", text: "✏️" });
+		editBtn.type = "button";
+		editBtn.title = hasTasksModal ? "Éditer (Tasks modal)" : "Tasks modal indisponible";
+		editBtn.disabled = !hasTasksModal;
+		editBtn.onclick = async (ev) => {
 		  ev.preventDefault(); ev.stopPropagation();
 		  await this.editWithTasksModal(t);
 		};
@@ -228,16 +229,6 @@ render() {
 	      const el = ev.target as HTMLElement;
 	      if (el.closest("a, input, button")) return;
 	      await this.openTodoOccurrence(t);
-	    };
-	
-	    // icône Tasks modal (édition)
-	    const edit = row.createEl("button", { cls: "pw-eisenhower-edit", text: "✏️" });
-	    edit.type = "button";
-	    edit.title = hasTasksModal ? "Éditer (Tasks modal)" : "Tasks modal indisponible";
-	    edit.disabled = !hasTasksModal;
-	    edit.onclick = async (ev) => {
-	      ev.preventDefault(); ev.stopPropagation();
-	      await this.editWithTasksModal(t);
 	    };
 	  }
 	};	
@@ -322,7 +313,6 @@ render() {
   }
 
   async onClose() {
-      this.mdComponent?.unload();
 	  this.containerEl.empty();
   }
 	
