@@ -118,3 +118,24 @@
 
 /* optionnel: cards un peu moins "spacieuses" */
 .pw-eisenhower-card{ padding: 10px !important; }
+
+/* Eisenhower — hard override (BOTTOM) */
+.pw-eisenhower-grid{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+
+.pw-eisenhower-inbox{
+  grid-column: 1 / -1 !important;
+}
+
+.pw-eisenhower-card{
+  border: 1px solid var(--background-modifier-border) !important;
+  border-radius: 10px !important;
+  padding: 10px !important;
+  background: var(--background-secondary) !important;
+
+  max-height: calc(100vh - 220px) !important;
+  overflow: auto !important;
+}
