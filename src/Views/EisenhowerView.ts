@@ -21,34 +21,35 @@ export class EisenhowerView extends ItemView {
     return "Eisenhower Matrix";
   }
 	
-	render() {
-	  const { containerEl } = this;
-	  containerEl.empty();
-	
-	  // Root
-	  containerEl.addClass("pw-eisenhower-root");
-	
-	  containerEl.createEl("h2", { text: "Eisenhower Matrix" });
-	
-	  // Grid
-	  const grid = containerEl.createDiv({ cls: "pw-eisenhower-grid" });
-	
-	  const q1 = grid.createDiv({ cls: "pw-eisenhower-card" });
-	  q1.createEl("h3", { text: "Q1 — Urgent & Important" });
-	  q1.createEl("div", { text: "Do" });
-	
-	  const q2 = grid.createDiv({ cls: "pw-eisenhower-card" });
-	  q2.createEl("h3", { text: "Q2 — Important (not urgent)" });
-	  q2.createEl("div", { text: "Plan" });
-	
-	  const q3 = grid.createDiv({ cls: "pw-eisenhower-card" });
-	  q3.createEl("h3", { text: "Q3 — Urgent (not important)" });
-	  q3.createEl("div", { text: "Delegate" });
-	
-	  const q4 = grid.createDiv({ cls: "pw-eisenhower-card" });
-	  q4.createEl("h3", { text: "Q4 — Someday/Maybe" });
-	  q4.createEl("div", { text: "Eliminate / Defer" });
-	}
+render() {
+  const { containerEl } = this;
+  containerEl.empty();
+
+  containerEl.addClass("pw-eisenhower-root");
+  containerEl.createEl("h2", { text: "Eisenhower Matrix" });
+
+  const grid = containerEl.createDiv({ cls: "pw-eisenhower-grid" });
+
+  const q1 = grid.createDiv({ cls: "pw-eisenhower-card" });
+  q1.createEl("h3", { text: "Q1 — Urgent & Important" });
+  q1.createEl("div", { text: "#urgent + #important" });
+
+  const q2 = grid.createDiv({ cls: "pw-eisenhower-card" });
+  q2.createEl("h3", { text: "Q2 — Important (not urgent)" });
+  q2.createEl("div", { text: "#important (sans #urgent)" });
+
+  const q3 = grid.createDiv({ cls: "pw-eisenhower-card" });
+  q3.createEl("h3", { text: "Q3 — Urgent (not important)" });
+  q3.createEl("div", { text: "#urgent (sans #important)" });
+
+  const q4 = grid.createDiv({ cls: "pw-eisenhower-card" });
+  q4.createEl("h3", { text: "Q4 — Someday/Maybe" });
+  q4.createEl("div", { text: "#someday (sans #urgent ni #important)" });
+
+  const inbox = grid.createDiv({ cls: "pw-eisenhower-card pw-eisenhower-inbox" });
+  inbox.createEl("h3", { text: "Inbox — non classé" });
+  inbox.createEl("div", { text: "Aucun tag: #urgent / #important / #someday" });
+}
 
   async onOpen() {
     this.render();
