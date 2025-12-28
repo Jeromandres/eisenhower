@@ -23,7 +23,8 @@ export class EisenhowerView extends ItemView {
   }
 
 	private getTasksApi() {
-	  return this.app.plugins.getPlugin("obsidian-tasks-plugin")?.apiV1;
+	  const plugins = (this.app as any).plugins;
+	  return plugins?.getPlugin?.("obsidian-tasks-plugin")?.apiV1;
 	}
 	
 	private async readLineFromFile(file: TFile, line: number): Promise<string | null> {
