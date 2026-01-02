@@ -579,15 +579,15 @@ await this.maybeSyncOutlookAfterMove(updated, bucket);
         else resolve();
       });
     });
-  } catch (e) {
-    console.error("[EIS] Outlook sync failed:", e);
-    new Notice("EIS: sync Outlook impossible (voir console).");
-  }
-  console.log("[EIS] Calling AppleScript", {
+	    console.log("[EIS] Calling AppleScript", {
   scriptPath,
   outlookId,
   bucket
 });
+  } catch (e) {
+    console.error("[EIS] Outlook sync failed:", e);
+    new Notice("EIS: sync Outlook impossible (voir console).");
+  }
 }
 	
   private async maybeSyncOutlookAfterMove(updatedLine: string, bucket: "Q1"|"Q2"|"Q3"|"Q4"|"INBOX"): Promise<void> {
