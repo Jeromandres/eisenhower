@@ -37,7 +37,10 @@ export class OutlookTriageSync {
 
   constructor(app: App) {
     this.app = app;
-	this.onAfterTriage = onAfterTriage;
+  }
+	
+  public setAfterTriageCallback(cb?: AfterTriageCallback) {
+    this.onAfterTriage = cb;
   }
 
   /** À appeler sur vault.on("modify") */
