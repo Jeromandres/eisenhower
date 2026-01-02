@@ -1,6 +1,7 @@
 import { App, Notice, TFile } from "obsidian";
+import { setTimeout as nodeSetTimeout, clearTimeout as nodeClearTimeout } from "timers";
 
-type Timer = ReturnType<typeof window.setTimeout>;
+type Timer = ReturnType<typeof nodeSetTimeout>;
 
 type TaskState = {
   done: boolean;
@@ -40,22 +41,22 @@ export class OutlookTriageSync {
     if (!this.onlyPathsPrefixes.some((p) => path.startsWith(p))) return;
 
     const prev = this.timers.get(path);
-    if (prev) window.clearTimeout(prev);
+	if (prev) nodeClearTimeout(prev);
 
-    const t = window.setTimeout(() => {
-      void this.processFile(file).catch((e) => {
-        console.error("[EIS][OutlookSync] processFile failed", e);
-      });
-    }, this.debounceMs);
+	const t = nodeSetTimeout(() => {
+	  void this.processFile(file).catch((e) => {
+	    console.error("[EIS][OutlookSync] processFile failed", e);
+	  });
+	}, this.debounceMs);
 
-    this.timers.set(path, t);
+	this.timers.set(path, t);
   }
 
   /** Optionnel : à appeler sur delete/rename pour éviter cache stale */
   onFileDeleted(path: string) {
     this.lastStateByPath.delete(path);
     const t = this.timers.get(path);
-    if (t) window.clearTimeout(t);
+	if (t) nodeClearTimeout(t);
     this.timers.delete(path);
   }
 
