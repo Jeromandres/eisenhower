@@ -112,6 +112,8 @@ export class OutlookTriageSync {
       for (const id of toClear) {
         await this.clearOutlookTriageById(id);
       }
+	  // ✅ notify once per file
+      this.onAfterTriage?.(path, toClear);
     }
 
     this.lastStateByPath.set(path, nextMap);
