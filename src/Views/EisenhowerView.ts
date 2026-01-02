@@ -73,7 +73,7 @@ export class EisenhowerView extends ItemView {
     await this.replaceLineInFile(file, lineNo, updated);
 
     // ✅ nouveau : si tâche Outlook, on nettoie les catégories côté Outlook
-    await this.maybeSyncOutlookAfterMove(updated);
+await this.maybeSyncOutlookAfterMove(updated, bucket);
 
     await this.render();
   }
