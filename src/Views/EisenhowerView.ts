@@ -82,6 +82,10 @@ export class EisenhowerView extends ItemView {
     // ✅ nouveau : si tâche Outlook, on nettoie les catégories côté Outlook
 await this.maybeSyncOutlookAfterMove(updated, bucket);
 
+	  console.log("[EIS] maybeSyncOutlookAfterMove", {
+  bucket,
+  updatedLine: updated
+
     await this.render();
   }
 	
@@ -596,9 +600,6 @@ await this.maybeSyncOutlookAfterMove(updated, bucket);
   const id = this.extractOutlookIdFromLine(updatedLine);
   if (!id) return;
 
-  console.log("[EIS] maybeSyncOutlookAfterMove", {
-  bucket,
-  updatedLine: updated
 });
 
   await this.setOutlookCategoriesById(id, bucket);
