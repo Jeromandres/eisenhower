@@ -23,6 +23,7 @@ import { TodoListView } from "./Views/TodoListView";
 import { OpenFileEvent } from "./events/TodoListEvents";
 import { TodoReportView } from "./Views/TodoReportView";
 import { OpenReportCommand } from "./Commands/OpenReportCommand";
+import { OutlookTriageSync } from "./infrastructure/OutlookTriageSync";
 
 export default class ProletarianWizard extends Plugin {
 	logger: ILogger = new ConsoleLogger(LogLevel.ERROR);
@@ -30,6 +31,7 @@ export default class ProletarianWizard extends Plugin {
 	fileTodoParser: FileTodoParser<TFile>;
 	folderTodoParser: FolderTodoParser<TFile>;
 	todoIndex: TodoIndex<TFile>;
+	private outlookSync?: OutlookTriageSync;
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
@@ -54,6 +56,8 @@ export default class ProletarianWizard extends Plugin {
 			this.settings
 		);
 
+		this.outlookSync = new OutlookTriageSync(this.app);
+		
 		const openPlanningCommand = new OpenPlanningCommand(
 			this.app.workspace,
 			"pw.open-planning",
@@ -202,6 +206,7 @@ export default class ProletarianWizard extends Plugin {
 					this.todoIndex.fileUpdated(
 						new ObsidianFile(this.app, file)
 					);
+					this.outlookSync?.onFileModified(file); // <= AJOUT
 				}
 			})
 		);
