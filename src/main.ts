@@ -227,6 +227,7 @@ export default class ProletarianWizard extends Plugin {
 					this.todoIndex.fileDeleted(
 						new ObsidianFile(this.app, file)
 					);
+					this.outlookSync?.onFileDeleted(file.path);
 				}
 			})
 		);
@@ -238,6 +239,7 @@ export default class ProletarianWizard extends Plugin {
 						oldPath,
 						new ObsidianFile(this.app, file)
 					);
+					this.outlookSync?.onFileRenamed(oldPath, file.path);
 				}
 			})
 		);
