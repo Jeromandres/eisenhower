@@ -72,6 +72,13 @@ export class EisenhowerView extends ItemView {
 
     await this.replaceLineInFile(file, lineNo, updated);
 
+	console.log("[EIS] moveTodoToBucket", {
+  bucket,
+  file: file.path,
+  lineNo,
+  original,
+  updated
+});
     // ✅ nouveau : si tâche Outlook, on nettoie les catégories côté Outlook
 await this.maybeSyncOutlookAfterMove(updated, bucket);
 
@@ -576,6 +583,11 @@ await this.maybeSyncOutlookAfterMove(updated, bucket);
     console.error("[EIS] Outlook sync failed:", e);
     new Notice("EIS: sync Outlook impossible (voir console).");
   }
+  console.log("[EIS] Calling AppleScript", {
+  scriptPath,
+  outlookId,
+  bucket
+});
 }
 	
   private async maybeSyncOutlookAfterMove(updatedLine: string, bucket: "Q1"|"Q2"|"Q3"|"Q4"|"INBOX"): Promise<void> {
@@ -583,6 +595,11 @@ await this.maybeSyncOutlookAfterMove(updated, bucket);
 
   const id = this.extractOutlookIdFromLine(updatedLine);
   if (!id) return;
+
+  console.log("[EIS] maybeSyncOutlookAfterMove", {
+  bucket,
+  updatedLine: updated
+});
 
   await this.setOutlookCategoriesById(id, bucket);
 }
