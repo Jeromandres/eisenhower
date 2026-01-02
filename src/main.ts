@@ -33,6 +33,8 @@ export default class ProletarianWizard extends Plugin {
 	todoIndex: TodoIndex<TFile>;
 	private outlookSync?: OutlookTriageSync;
 
+	private eisRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
 		this.openFileAsync = this.openFileAsync.bind(this);
@@ -56,7 +58,13 @@ export default class ProletarianWizard extends Plugin {
 			this.settings
 		);
 
-		this.outlookSync = new OutlookTriageSync(this.app);
+		this.outlookSync = new OutlookTriageSync(
+		  this.app,
+		  (_path, ids) => {
+		    this.logger.info("[EIS] Outlook triage completed", ids);
+		    this.scheduleEisenhowerRefresh("outlook-triage");
+		  }
+		);
 		
 		const openPlanningCommand = new OpenPlanningCommand(
 			this.app.workspace,
@@ -245,6 +253,21 @@ export default class ProletarianWizard extends Plugin {
 		);
 	}
 
+	private scheduleEisenhowerRefresh(reason = "outlook-triage") {
+	  if (this.eisRefreshTimer) clearTimeout(this.eisRefreshTimer);
+	
+	  this.eisRefreshTimer = setTimeout(() => {
+	    this.eisRefreshTimer = null;
+	
+	    const leaves = this.app.workspace.getLeavesOfType(EisenhowerView.viewType);
+	    for (const leaf of leaves) {
+	      const v: any = leaf.view;
+	      if (typeof v.refresh === "function") v.refresh(reason);
+	      else if (typeof v.render === "function") v.render();
+	    }
+	  }, 200);
+	}
+	
 	private async openFileAsync(fileAndLine: OpenFileEvent<TFile>) {
 		const { file, line, inOtherLeaf } = fileAndLine;
 		let leaf = this.app.workspace.getLeaf();
