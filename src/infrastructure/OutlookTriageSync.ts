@@ -15,9 +15,11 @@ export class OutlookTriageSync {
   private debounceMs = 800;
 
   // filtre perf (ajuste si tu veux plus large)
-  private onlyPathsPrefix = "5. JOURNAL/5.10 DAILY/";
-
-  // script AppleScript (celui que tu as déjà)
+ private onlyPathsPrefixes = [
+  "5. JOURNAL/5.10 DAILY/",
+  "3. RESOURCES/3.80 PEOPLE/",
+ ];
+	// script AppleScript (celui que tu as déjà)
   private clearScriptPath = "/Users/support/Library/Services/outlook_clear_triage_by_id.scpt";
 
   constructor(app: App) {
@@ -25,24 +27,24 @@ export class OutlookTriageSync {
   }
 
   /** À appeler sur "modify" */
-  onFileModified(file: TFile) {
-    if (file.extension !== "md") return;
-    if (!file.path.startsWith(this.onlyPathsPrefix)) return;
+onFileModified(file: TFile) {
+  if (file.extension !== "md") return;
 
-    const path = file.path;
+  const path = file.path;
+  if (!this.onlyPathsPrefixes.some((p) => path.startsWith(p))) return;
 
-    // debounce
-    const prev = this.timers.get(path);
-    if (prev) window.clearTimeout(prev);
+  // debounce par fichier (inchangé)
+  const prev = this.timers.get(path);
+  if (prev) window.clearTimeout(prev);
 
-    const t = window.setTimeout(() => {
-      void this.processFile(file).catch((e) => {
-        console.error("[EIS] Outlook sync: processFile failed", e);
-      });
-    }, this.debounceMs);
+  const t = window.setTimeout(() => {
+    void this.processFile(file).catch((e) => {
+      console.error("[EIS] Outlook sync: processFile failed", e);
+    });
+  }, this.debounceMs);
 
-    this.timers.set(path, t);
-  }
+  this.timers.set(path, t);
+}
 
   private async processFile(file: TFile) {
     const path = file.path;
