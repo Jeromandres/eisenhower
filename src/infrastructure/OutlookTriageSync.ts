@@ -8,9 +8,15 @@ type TaskState = {
   hasOutlook: boolean;
 };
 
+// ✅ AJOUT
+export type AfterTriageCallback = (path: string, ids: string[]) => void;
+
 export class OutlookTriageSync {
   private app: App;
 
+  // ✅ AJOUT
+  private onAfterTriage?: AfterTriageCallback;
+	
   // cache par fichier : map outlookId -> état
   private lastStateByPath = new Map<string, Map<string, TaskState>>();
 
@@ -31,6 +37,7 @@ export class OutlookTriageSync {
 
   constructor(app: App) {
     this.app = app;
+	this.onAfterTriage = onAfterTriage;
   }
 
   /** À appeler sur vault.on("modify") */
