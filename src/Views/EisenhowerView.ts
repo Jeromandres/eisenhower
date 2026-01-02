@@ -59,20 +59,24 @@ export class EisenhowerView extends ItemView {
 	  return `${base} ${tags.join(" ")}`.trimEnd();
 	}
 	
-	private async moveTodoToBucket(t: any, bucket: "Q1" | "Q2" | "Q3" | "Q4" | "INBOX") {
-	  const file = this.getTodoFile(t);
-	  const lineNo = this.getTodoLine(t);
-	  if (!file || lineNo == null) return;
-	
-	  const original = await this.readLineFromFile(file, lineNo);
-	  if (!original) return;
-	
-	  const updated = this.applyBucketToLine(original, bucket);
-	  if (updated === original) return;
-	
-	  await this.replaceLineInFile(file, lineNo, updated);
-	  await this.render();
-	}
+	  private async moveTodoToBucket(t: any, bucket: "Q1" | "Q2" | "Q3" | "Q4" | "INBOX") {
+    const file = this.getTodoFile(t);
+    const lineNo = this.getTodoLine(t);
+    if (!file || lineNo == null) return;
+
+    const original = await this.readLineFromFile(file, lineNo);
+    if (!original) return;
+
+    const updated = this.applyBucketToLine(original, bucket);
+    if (updated === original) return;
+
+    await this.replaceLineInFile(file, lineNo, updated);
+
+    // ✅ nouveau : si tâche Outlook, on nettoie les catégories côté Outlook
+    await this.maybeSyncOutlookAfterMove(updated);
+
+    await this.render();
+  }
 	
 	private getTasksApi() {
 	  const plugins = (this.app as any).plugins;
@@ -523,6 +527,66 @@ export class EisenhowerView extends ItemView {
 	    .replace(/\s+/g, " ")
 	    .trim();
 	}
+
+	  private extractOutlookIdFromLine(line: string): string | null {
+    // hook://outlook/99550
+    const m = line.match(/hook:\/\/outlook\/(\d+)/i);
+    return m ? m[1] : null;
+  }
+
+  private hasOutlookTag(line: string): boolean {
+    return /(^|\s)#outlook(\b)/i.test(line);
+  }
+
+  private async clearOutlookCategoriesById(outlookId: string): Promise<void> {
+    try {
+      // En environnement Obsidian (Electron), require est accessible.
+      // Selon config, il peut être sur window.require.
+      const req = (window as any).require ?? require;
+      const { execFile } = req("child_process");
+
+      const scriptPath = "/Users/support/Library/Services/clear_outlook_categories_by_id.scpt";
+
+      await new Promise<void>((resolve, reject) => {
+        execFile("/usr/bin/osascript", [scriptPath, outlookId], (err: any, _stdout: any, _stderr: any) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    } catch (e) {
+      console.error("[EIS] Outlook clear failed:", e);
+      new Notice("EIS: sync Outlook impossible (voir console).");
+    }
+  }
+
+	private async setOutlookCategoriesById(outlookId: string, bucket: "Q1"|"Q2"|"Q3"|"Q4"|"INBOX"): Promise<void> {
+  try {
+    const req = (window as any).require ?? require;
+    const { execFile } = req("child_process");
+
+    const scriptPath = "/Users/support/Library/Services/set_outlook_bucket_by_id.scpt";
+
+    await new Promise<void>((resolve, reject) => {
+      execFile("/usr/bin/osascript", [scriptPath, outlookId, bucket], (err: any) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  } catch (e) {
+    console.error("[EIS] Outlook sync failed:", e);
+    new Notice("EIS: sync Outlook impossible (voir console).");
+  }
+}
+	
+  private async maybeSyncOutlookAfterMove(updatedLine: string): Promise<void> {
+    if (!this.hasOutlookTag(updatedLine)) return;
+
+    const id = this.extractOutlookIdFromLine(updatedLine);
+    if (!id) return;
+
+    await this.setOutlookCategoriesById(id);
+  }
+	
   async onOpen() {
     this.render();
   }
