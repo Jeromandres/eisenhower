@@ -60,8 +60,8 @@ export default class ProletarianWizard extends Plugin {
 
 		this.outlookSync = new OutlookTriageSync(
 		  this.app,
-		  (_path, ids) => {
-		    this.logger.info("[EIS] Outlook triage completed", ids);
+		  (path: string, ids: string[]) => {
+		    this.logger.info(`[EIS] Outlook triage completed file=${path} ids=${ids.join(",")}`);
 		    this.scheduleEisenhowerRefresh("outlook-triage");
 		  }
 		);
