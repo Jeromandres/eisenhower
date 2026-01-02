@@ -2,11 +2,16 @@ import { App, Notice, TFile } from "obsidian";
 
 type Timer = ReturnType<typeof window.setTimeout>;
 
+type TaskState = {
+  done: boolean;
+  hasOutlook: boolean;
+};
+
 export class OutlookTriageSync {
   private app: App;
 
-  // cache dernier contenu par fichier (pour détecter transitions)
-  private lastByPath = new Map<string, string>();
+  // cache par fichier : map outlookId -> état
+  private lastStateByPath = new Map<string, Map<string, TaskState>>();
 
   // debounce par fichier
   private timers = new Map<string, Timer>();
@@ -15,100 +20,122 @@ export class OutlookTriageSync {
   private debounceMs = 800;
 
   // filtre perf (ajuste si tu veux plus large)
- private onlyPathsPrefixes = [
-  "5. JOURNAL/5.10 DAILY/",
-  "3. RESOURCES/3.80 PEOPLE/",
- ];
-	// script AppleScript (celui que tu as déjà)
-  private clearScriptPath = "/Users/support/Library/Services/outlook_clear_triage_by_id.scpt";
+  private onlyPathsPrefixes = [
+    "5. JOURNAL/5.10 DAILY/",
+    "3. RESOURCES/3.80 PEOPLE/",
+  ];
+
+  private clearScriptPath =
+    "/Users/support/Library/Services/outlook_clear_triage_by_id.scpt";
 
   constructor(app: App) {
     this.app = app;
   }
 
-  /** À appeler sur "modify" */
-onFileModified(file: TFile) {
-  if (file.extension !== "md") return;
+  /** À appeler sur vault.on("modify") */
+  onFileModified(file: TFile) {
+    if (file.extension !== "md") return;
 
-  const path = file.path;
-  if (!this.onlyPathsPrefixes.some((p) => path.startsWith(p))) return;
+    const path = file.path;
+    if (!this.onlyPathsPrefixes.some((p) => path.startsWith(p))) return;
 
-  // debounce par fichier (inchangé)
-  const prev = this.timers.get(path);
-  if (prev) window.clearTimeout(prev);
+    const prev = this.timers.get(path);
+    if (prev) window.clearTimeout(prev);
 
-  const t = window.setTimeout(() => {
-    void this.processFile(file).catch((e) => {
-      console.error("[EIS] Outlook sync: processFile failed", e);
-    });
-  }, this.debounceMs);
+    const t = window.setTimeout(() => {
+      void this.processFile(file).catch((e) => {
+        console.error("[EIS][OutlookSync] processFile failed", e);
+      });
+    }, this.debounceMs);
 
-  this.timers.set(path, t);
-}
+    this.timers.set(path, t);
+  }
+
+  /** Optionnel : à appeler sur delete/rename pour éviter cache stale */
+  onFileDeleted(path: string) {
+    this.lastStateByPath.delete(path);
+    const t = this.timers.get(path);
+    if (t) window.clearTimeout(t);
+    this.timers.delete(path);
+  }
+
+  onFileRenamed(oldPath: string, newPath: string) {
+    const prev = this.lastStateByPath.get(oldPath);
+    if (prev) {
+      this.lastStateByPath.set(newPath, prev);
+      this.lastStateByPath.delete(oldPath);
+    }
+    const t = this.timers.get(oldPath);
+    if (t) {
+      this.timers.set(newPath, t);
+      this.timers.delete(oldPath);
+    }
+  }
 
   private async processFile(file: TFile) {
     const path = file.path;
-
     const content = await this.app.vault.read(file);
 
-    // fast path perf: si pas #outlook ou pas de hook outlook, inutile
+    // fast path perf
     if (!content.includes("#outlook") || !content.includes("hook://outlook/")) {
-      this.lastByPath.set(path, content);
+      this.lastStateByPath.set(path, new Map());
       return;
     }
 
-    const prev = this.lastByPath.get(path);
+    const nextMap = this.extractOutlookTaskStates(content);
+    const prevMap = this.lastStateByPath.get(path);
 
-    // 1ère fois => on initialise juste le cache
-    if (prev == null) {
-      this.lastByPath.set(path, content);
+    // 1ère fois => init cache
+    if (!prevMap) {
+      this.lastStateByPath.set(path, nextMap);
       return;
     }
 
-    // Détection transitions "- [ ]" -> "- [x]" sur lignes Outlook
-    const ids = this.detectCheckedTransitions(prev, content);
+    // transitions : prev done=false -> next done=true
+    const toClear: string[] = [];
+    for (const [id, nextState] of nextMap.entries()) {
+      const prevState = prevMap.get(id);
+      if (!prevState) continue;
 
-    if (ids.length) {
-      console.log("[EIS] Outlook triage clear (checked tasks)", { path, ids });
+      const transitionedToDone =
+        prevState.hasOutlook &&
+        nextState.hasOutlook &&
+        prevState.done === false &&
+        nextState.done === true;
 
-      // exécute en série (plus simple, plus sûr)
-      for (const id of ids) {
+      if (transitionedToDone) toClear.push(id);
+    }
+
+    if (toClear.length) {
+      console.log("[EIS][OutlookSync] triage clear", { path, ids: toClear });
+      for (const id of toClear) {
         await this.clearOutlookTriageById(id);
       }
     }
 
-    this.lastByPath.set(path, content);
+    this.lastStateByPath.set(path, nextMap);
   }
 
-  private detectCheckedTransitions(prev: string, next: string): string[] {
-    const prevLines = prev.split("\n");
-    const nextLines = next.split("\n");
+  private extractOutlookTaskStates(content: string): Map<string, TaskState> {
+    const map = new Map<string, TaskState>();
+    const lines = content.split("\n");
 
-    const n = Math.max(prevLines.length, nextLines.length);
-    const out = new Set<string>();
+    for (const line of lines) {
+      // skip rapide
+      if (!line.includes("hook://outlook/")) continue;
 
-    for (let i = 0; i < n; i++) {
-      const a = prevLines[i] ?? "";
-      const b = nextLines[i] ?? "";
+      const id = this.extractOutlookIdFromLine(line);
+      if (!id) continue;
 
-      // Transition unchecked -> checked
-      const wasTodo = this.isUncheckedTask(a);
-      const isDone = this.isCheckedTask(b);
+      const hasOutlook = this.hasOutlookTag(line);
+      if (!hasOutlook) continue; // tu as dit : identifiant + #outlook requis
 
-      if (!wasTodo || !isDone) continue;
+      const done = this.isCheckedTask(line);
 
-      // doit être Outlook
-      if (!this.hasOutlookTag(b)) continue;
-
-      const id = this.extractOutlookIdFromLine(b);
-      if (id) out.add(id);
+      map.set(id, { done, hasOutlook: true });
     }
 
-    return [...out];
-  }
-
-  private isUncheckedTask(line: string): boolean {
-    return /^\s*[-*+]\s+\[\s\]\s+/.test(line);
+    return map;
   }
 
   private isCheckedTask(line: string): boolean {
@@ -135,7 +162,12 @@ onFileModified(file: TFile) {
           [this.clearScriptPath, outlookId],
           (err: any, stdout: any, stderr: any) => {
             if (err) {
-              console.error("[EIS] Outlook clear failed", { outlookId, err, stdout, stderr });
+              console.error("[EIS][OutlookSync] clear failed", {
+                outlookId,
+                err,
+                stdout,
+                stderr,
+              });
               reject(err);
             } else {
               resolve();
@@ -144,7 +176,7 @@ onFileModified(file: TFile) {
         );
       });
     } catch (e) {
-      console.error("[EIS] Outlook clear failed (exception)", e);
+      console.error("[EIS][OutlookSync] clear failed (exception)", e);
       new Notice("EIS: sync Outlook impossible (voir console).");
     }
   }
