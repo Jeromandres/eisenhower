@@ -578,14 +578,14 @@ await this.maybeSyncOutlookAfterMove(updated, bucket);
   }
 }
 	
-  private async maybeSyncOutlookAfterMove(updatedLine: string): Promise<void> {
-    if (!this.hasOutlookTag(updatedLine)) return;
+  private async maybeSyncOutlookAfterMove(updatedLine: string, bucket: "Q1"|"Q2"|"Q3"|"Q4"|"INBOX"): Promise<void> {
+  if (!this.hasOutlookTag(updatedLine)) return;
 
-    const id = this.extractOutlookIdFromLine(updatedLine);
-    if (!id) return;
+  const id = this.extractOutlookIdFromLine(updatedLine);
+  if (!id) return;
 
-    await this.setOutlookCategoriesById(id);
-  }
+  await this.setOutlookCategoriesById(id, bucket);
+}
 	
   async onOpen() {
     this.render();
