@@ -58,13 +58,12 @@ export default class ProletarianWizard extends Plugin {
 			this.settings
 		);
 
-		this.outlookSync = new OutlookTriageSync(
-		  this.app,
-		  (path: string, ids: string[]) => {
-		    this.logger.info(`[EIS] Outlook triage completed file=${path} ids=${ids.join(",")}`);
-		    this.scheduleEisenhowerRefresh("outlook-triage");
-		  }
-		);
+		this.outlookSync = new OutlookTriageSync(this.app);
+
+		this.outlookSync.setAfterTriageCallback((path: string, ids: string[]) => {
+		  this.logger.info(`[EIS] Outlook triage completed file=${path} ids=${ids.join(",")}`);
+		  this.scheduleEisenhowerRefresh("outlook-triage");
+		});
 		
 		const openPlanningCommand = new OpenPlanningCommand(
 			this.app.workspace,
