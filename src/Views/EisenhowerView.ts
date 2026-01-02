@@ -202,9 +202,34 @@ export class EisenhowerView extends ItemView {
       new Notice("Impossible de basculer: ligne non reconnue comme tâche markdown.");
       return;
     }
+await this.replaceLineInFile(file, line, next);
 
-    await this.replaceLineInFile(file, line, next);
-    await this.render(); // refresh
+// relire la ligne après écriture (sécurise le sync)
+const after = await this.readLineFromFile(file, line);
+if (this.debugEis) console.log("[EIS] after toggle", { after });
+
+const isNowDone = after ? this.getCheckboxState(after) === "DONE" : false;
+
+// Cas simple: si c'est une tâche Outlook et qu'elle vient d'être cochée -> sync Outlook
+if (isNowDone && after && this.hasOutlookTag(after)) {
+  const outlookId = this.extractOutlookIdFromLine(after);
+
+  if (this.debugEis) console.log("[EIS] DONE sync check", {
+    outlookId,
+    hasOutlook: true,
+    file: file.path,
+    line,
+  });
+
+  if (outlookId) {
+    await this.clearOutlookCategoriesById(outlookId);
+  } else {
+    // pas exploitable (ex: hook://application/com.microsoft.Outlook)
+    if (this.debugEis) console.log("[EIS] skipped Outlook sync (no id)", { after });
+  }
+}
+
+await this.render(); // refresh
   }
 
   private async editWithTasksModal(t: any) {
@@ -338,6 +363,37 @@ export class EisenhowerView extends ItemView {
     await this.setOutlookCategoriesById(id, bucket);
   }
 
+  private async clearOutlookCategoriesById(outlookId: string): Promise<void> {
+  const scriptPath = "/Users/support/Library/Services/outlook_clear_triage_by_id.scpt";
+
+  try {
+    const req = (window as any).require ?? require;
+    const { execFile } = req("child_process");
+
+    await new Promise<void>((resolve, reject) => {
+      execFile(
+        "/usr/bin/osascript",
+        [scriptPath, outlookId],
+        (err: any, stdout: any, stderr: any) => {
+          if (this.debugEis) {
+            console.log("[EIS] Outlook AppleScript result", {
+              outlookId,
+              scriptPath,
+              stdout: String(stdout || ""),
+              stderr: String(stderr || ""),
+              err: err ? String(err) : null,
+            });
+          }
+          if (err) reject(err);
+          else resolve();
+        }
+      );
+    });
+  } catch (e) {
+    console.error("[EIS] Outlook clear failed:", e);
+    new Notice("EIS: sync Outlook impossible (voir console).");
+  }
+}
   /* ===================== RENDER ===================== */
 
   async render() {
