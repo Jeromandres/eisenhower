@@ -208,32 +208,31 @@ export default class ProletarianWizard extends Plugin {
 
 	private registerEvents() {
 		this.registerEvent(
-			this.app.vault.on("modify", (file) => {
-				if (file instanceof TFile && file.extension === "md") {
-					this.todoIndex.fileUpdated(
-						new ObsidianFile(this.app, file)
-					);
-					this.outlookSync?.onFileModified(file); // <= AJOUT
-
-				// ✅ filtres perf
-				const path = file.path;
-				const isDaily = path.startsWith("5. JOURNAL/5.10 DAILY/");
-				const isPeople = path.startsWith("3. RESOURCES/3.80 PEOPLE/");
-				if (!isDaily && !isPeople) return;
-			
-				// fast check
-				void this.app.vault.read(file).then((content) => {
-				  if (!content.includes("#outlook")) return;
-			
-				  const leaves = this.app.workspace.getLeavesOfType(EisenhowerView.viewType);
-				  for (const leaf of leaves) {
-					const v: any = leaf.view;
-					if (typeof v.refresh === "function") v.refresh("vault-modify");
-					else if (typeof v.render === "function") void v.render();
-				  }
-				});
-			  })
-			);
+		  this.app.vault.on("modify", (file) => {
+		    if (!(file instanceof TFile) || file.extension !== "md") return;
+		
+		    this.todoIndex.fileUpdated(new ObsidianFile(this.app, file));
+		    this.outlookSync?.onFileModified(file);
+		
+		    // ✅ filtres perf
+		    const path = file.path;
+		    const isDaily = path.startsWith("5. JOURNAL/5.10 DAILY/");
+		    const isPeople = path.startsWith("3. RESOURCES/3.80 PEOPLE/");
+		    if (!isDaily && !isPeople) return;
+		
+		    // fast check
+		    void this.app.vault.read(file).then((content) => {
+		      if (!content.includes("#outlook")) return;
+		
+		      const leaves = this.app.workspace.getLeavesOfType(EisenhowerView.viewType);
+		      for (const leaf of leaves) {
+		        const v: any = leaf.view;
+		        if (typeof v.refresh === "function") v.refresh("vault-modify");
+		        else if (typeof v.render === "function") void v.render();
+		      }
+		    });
+		  })
+		);
 
 		this.registerEvent(
 			this.app.vault.on("create", (file) => {
