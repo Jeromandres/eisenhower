@@ -215,31 +215,25 @@ export default class ProletarianWizard extends Plugin {
 					);
 					this.outlookSync?.onFileModified(file); // <= AJOUT
 
-				    // ✅ filtres simples perf
-			const path = file.path;
-			const isDaily =
-			  path.startsWith("5. JOURNAL/5.10 DAILY/");
-			const isPeople =
-			  path.startsWith("3. RESOURCES/3.80 PEOPLE/");
-		
-			if (!isDaily && !isPeople) return;
-		
-			// fast check : pas de tâche Outlook → inutile de rafraîchir
-			// (lecture légère, acceptable ici)
-			this.app.vault.read(file).then((content) => {
-			  if (!content.includes("#outlook")) return;
-		
-			  // ♻️ réutilise le debounce interne d’EisenhowerView
-			  const leaves = this.app.workspace.getLeavesOfType(EisenhowerView.viewType);
-			  for (const leaf of leaves) {
-				const v: any = leaf.view;
-				if (typeof v.refresh === "function") {
-				  v.refresh("vault-modify");
-				}
-			  }
-			});
-		  })
-		);
+				// ✅ filtres perf
+				const path = file.path;
+				const isDaily = path.startsWith("5. JOURNAL/5.10 DAILY/");
+				const isPeople = path.startsWith("3. RESOURCES/3.80 PEOPLE/");
+				if (!isDaily && !isPeople) return;
+			
+				// fast check
+				void this.app.vault.read(file).then((content) => {
+				  if (!content.includes("#outlook")) return;
+			
+				  const leaves = this.app.workspace.getLeavesOfType(EisenhowerView.viewType);
+				  for (const leaf of leaves) {
+					const v: any = leaf.view;
+					if (typeof v.refresh === "function") v.refresh("vault-modify");
+					else if (typeof v.render === "function") void v.render();
+				  }
+				});
+			  })
+			);
 
 		this.registerEvent(
 			this.app.vault.on("create", (file) => {
