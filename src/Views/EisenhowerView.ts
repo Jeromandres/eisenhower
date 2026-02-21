@@ -6,12 +6,14 @@ import {
   Notice,
   MarkdownRenderer,
   Component,
+  Platform,
 } from "obsidian";
 import { getTodoId } from "../domain/TodoItem";
 import { Consts } from "../domain/Consts";
 
 export class EisenhowerView extends ItemView {
   private debugEis = true;
+  private activeMobileTab: "Q1" | "Q2" | "Q3" | "Q4" | "INBOX" = "Q1";
 
   static viewType = "eisenhower-view";
 
@@ -401,6 +403,7 @@ await this.render(); // refresh
     containerEl.empty();
 
     containerEl.addClass("pw-eisenhower-root");
+    if (Platform.isMobile) containerEl.addClass("pw-eisenhower-mobile");
 
     const header = containerEl.createDiv({ cls: "pw-eisenhower-header" });
     header.createEl("h2", { text: "Eisenhower Matrix" });
@@ -418,6 +421,9 @@ await this.render(); // refresh
       void this.refresh("button");
     };
 
+    // Mobile tab bar (hidden on desktop via CSS)
+    const tabs = containerEl.createDiv({ cls: "pw-eisenhower-tabs" });
+
     const grid = containerEl.createDiv({ cls: "pw-eisenhower-grid" });
 
     const q1 = grid.createDiv({ cls: "pw-eisenhower-card" });
@@ -434,6 +440,42 @@ await this.render(); // refresh
 
     const inbox = grid.createDiv({ cls: "pw-eisenhower-card pw-eisenhower-inbox" });
     inbox.createEl("h3", { text: "Inbox — non classé" });
+
+    // Track cards for mobile tab switching
+    const cardEls: Record<"Q1" | "Q2" | "Q3" | "Q4" | "INBOX", HTMLElement> = {
+      Q1: q1, Q2: q2, Q3: q3, Q4: q4, INBOX: inbox,
+    };
+
+    // Set initial active card
+    for (const [k, el] of Object.entries(cardEls)) {
+      if (k === this.activeMobileTab) el.addClass("pw-eisenhower-card--mobile-active");
+    }
+
+    // Create tab buttons
+    const tabDefs: Array<{ key: "Q1" | "Q2" | "Q3" | "Q4" | "INBOX"; label: string }> = [
+      { key: "Q1", label: "Q1 — Urgent & Important" },
+      { key: "Q2", label: "Q2 — Important" },
+      { key: "Q3", label: "Q3 — Urgent" },
+      { key: "Q4", label: "Q4 — Someday" },
+      { key: "INBOX", label: "Inbox" },
+    ];
+
+    const tabBtns: HTMLElement[] = [];
+    for (const { key, label } of tabDefs) {
+      const btn = tabs.createEl("button", { cls: "pw-eisenhower-tab-btn", text: label });
+      if (key === this.activeMobileTab) btn.addClass("pw-eisenhower-tab-btn--active");
+      btn.type = "button";
+      tabBtns.push(btn);
+      btn.onclick = () => {
+        this.activeMobileTab = key;
+        tabBtns.forEach((b) => b.removeClass("pw-eisenhower-tab-btn--active"));
+        btn.addClass("pw-eisenhower-tab-btn--active");
+        for (const [k, el] of Object.entries(cardEls)) {
+          if (k === key) el.addClass("pw-eisenhower-card--mobile-active");
+          else el.removeClass("pw-eisenhower-card--mobile-active");
+        }
+      };
+    }
 
     const makeDropZone = (
       boxEl: HTMLElement,
